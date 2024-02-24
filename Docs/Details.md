@@ -1,8 +1,8 @@
-# Chat App
+# FriendNexus
 
 ## Intro:
 
-Introducing "FriendNexus" - A dynamic social messaging platform designed to bring people closer together. With FriendNexus, communication becomes effortless and engaging, offering a myriad of features tailored to enhance your social connectivity experience.
+**Introducing "FriendNexus" - A dynamic social messaging platform designed to bring people closer together. With FriendNexus, communication becomes effortless and engaging, offering a myriad of features tailored to enhance your social connectivity experience.**
 
 ## Key Features:
 
@@ -36,20 +36,10 @@ Introducing "FriendNexus" - A dynamic social messaging platform designed to brin
 
 - Customizable Themes and Emojis: Personalize your messaging experience with a range of themes and emojis, adding a touch of fun and expressiveness to your conversations.
 
-## Name Suggesions:
-
-- Chat Linker
-- Friend Nexus
-- Social Weave
-- Circle Connect
-- Inter Connectify
-- Link Blend
-- Cohesion Chat
-- Kinetic Chat
 
 ## Conclusion:
 
-With FriendNexus, stay connected with your friends like never before. Join the community today and experience social messaging redefined.
+**With FriendNexus, stay connected with your friends like never before. Join the community today and experience social messaging redefined.**
 
 # Social Media App:
 ## Updated Features:
