@@ -28,6 +28,8 @@
 
 - Add OAuth using google and other platforms
 
+- The user has the capability to generate and submit reports directly to the platform's administrator. 
+
 - Event Planning: Organize events within groups or among friends, making it easier to coordinate gatherings and activities.
 
 - Integration with External Platforms: Seamlessly integrate Connectify with other social media platforms, allowing for cross-platform connectivity and sharing.
