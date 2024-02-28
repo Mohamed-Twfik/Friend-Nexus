@@ -18,10 +18,10 @@ for Google + Facebook and maybe others (Github?).
 **Auth**:
 
 ```
-/auth/signIn  [POST]
-/auth/signUp  [POST]
+/auth/signin  [POST]
+/auth/signup  [POST]
 /auth/code    [POST]
-/auth/signOut [POST]
+/auth/signout [POST]
 ```
 
 **Users**:
