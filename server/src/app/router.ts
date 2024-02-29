@@ -2,7 +2,7 @@ import express, { Application, Request, NextFunction, Response } from "express";
 import path from "path";
 import { ErrorMessage } from "./types/response";
 import errorMessage from "./utils/errorMessage";
-import swagger from '../swagger';
+// import swagger from '../swagger';
 import authRouter from "./routes/auth.router"
 import userRouter from "./routes/user.router"
 import friendRouter from "./routes/friend.router"
@@ -12,12 +12,12 @@ import authentication from "./middlewares/Auth/authentication";
 
 export default (app: Application)=>{
     app.use("/auth", authRouter);
-    app.use(authentication)
-    app.use("/file", express.static(path.join(__dirname, "uploads")))
-    app.use("/users", userRouter);
-    app.use("/friends", friendRouter);
-    app.use("/chats", chatRouter);
-    app.use("/messages", messageRouter);
+    app.use("/file", authentication, express.static(path.join(__dirname, "uploads")))
+    app.use("/users", authentication, userRouter);
+    app.use("/friends", authentication, friendRouter);
+    app.use("/chats", authentication, chatRouter);
+    app.use("/messages", authentication, messageRouter);
+
     // swagger(app);
 
     // Not Found Page

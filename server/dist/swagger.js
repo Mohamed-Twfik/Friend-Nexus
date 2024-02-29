@@ -1,7 +1,7 @@
+"use strict";
 // import swaggerJsdoc from 'swagger-jsdoc';
 // import swaggerUi from 'swagger-ui-express';
 // import { Express } from "express";
-
 // const options = {
 //   swaggerDefinition: {
 //     restapi: '3.0.0',
@@ -18,9 +18,7 @@
 //   },
 //   apis: ['**/dist*.js'],
 // }
-
 // const specs = swaggerJsdoc(options)
-
 // export default (app: Express) => {
 //   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs))
 // }

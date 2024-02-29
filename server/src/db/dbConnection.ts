@@ -14,7 +14,7 @@ const dbConnection = (app: Application, port: number) => {
       console.log("Connected successfully to Database server");
       const listenOn = process.env.PORT || port;
       app.listen(listenOn, () =>
-        console.log(`app listening on port ${listenOn}!`)
+        console.log(`app listening on URL: http://localhost:${listenOn}`)
       );
     })
     .catch((err) => console.log(err));

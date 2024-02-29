@@ -3,6 +3,9 @@ import cors from "cors";
 import helmet from "helmet";
 import dbConnection from "./db/dbConnection";
 import router from "./app/router"
+import dotenv from "dotenv";
+
+dotenv.config();
 const app = express();
 const port = 5000;
 dbConnection(app, port);
