@@ -34,6 +34,24 @@ for Google + Facebook and maybe others (Github?).
 /users/:userId  [DELETE]
 ```
 
+**Devices**:
+
+```
+/devices/list       [GET]
+/devices/:deviceId  [GET]
+/device/:deviceId   [DELETE]
+```
+
+**Statuses**:
+
+```
+/statuses/list/:userId  [GET]
+/statuses/:statusId     [GET]
+/statuses/new           [POST]
+/statuses/:statusId     [PATCH]
+/statuses/:statusId     [DELETE]
+```
+
 **Friend Ship**:
 
 ```
