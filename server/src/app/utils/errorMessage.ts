@@ -1,9 +1,10 @@
-import {ErrorMessage} from "../types/response";
+import {ErrorResponse} from "../types/response";
 
-export default (status: number, message: string) => {
-  const error: ErrorMessage = {
+export default (status: number, message: string, data: any = []) => {
+  const error: ErrorResponse = {
     message,
     status,
+    data
   };
   return error;
 };

@@ -12,14 +12,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const dotenv_1 = __importDefault(require("dotenv"));
-const catchErrors_1 = __importDefault(require("../utils/catchErrors"));
-const errorMessage_1 = __importDefault(require("../utils/errorMessage"));
-dotenv_1.default.config();
-exports.default = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const { DB_URL, MAIL_USER, MAIL_PASS, JWT_SECRET, MAX_DEVICES_ALLOWED } = process.env;
-    if (!DB_URL || !MAIL_USER || !MAIL_PASS || !JWT_SECRET || !MAX_DEVICES_ALLOWED)
-        return next((0, errorMessage_1.default)(500, "Missing Environment Variable"));
-    else
-        return next();
-}));
+const express_validator_1 = require("express-validator");
+const user_model_1 = __importDefault(require("../../models/user.model"));
+exports.default = () => {
+    return [
+        (0, express_validator_1.body)("email")
+            .trim()
+            .isEmail().withMessage("Email Not Found")
+            .normalizeEmail()
+            .custom((value, { req }) => __awaiter(void 0, void 0, void 0, function* () {
+            const user = yield user_model_1.default.findOne({ email: value });
+            if (!user)
+                throw new Error("Email Not Found");
+            req.user = user;
+        }))
+    ];
+};

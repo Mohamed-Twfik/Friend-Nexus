@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
 const nodemailer_1 = __importDefault(require("nodemailer"));
 dotenv_1.default.config();
-const sendEmail = (to, subject, message, link = { url: "", description: "" }) => __awaiter(void 0, void 0, void 0, function* () {
+const sendEmail = (to, subject, message, link = { url: "", title: "" }) => __awaiter(void 0, void 0, void 0, function* () {
     const transport = nodemailer_1.default.createTransport({
         service: 'gmail',
         auth: {
@@ -30,7 +30,7 @@ const sendEmail = (to, subject, message, link = { url: "", description: "" }) =>
           <meta charset="UTF-8">
           <meta http-equiv="X-UA-Compatible" content="IE=edge">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Farm Vision Email</title>
+          <title>FriendNexus</title>
           <style>
             body{
               text-align: center;
@@ -49,10 +49,10 @@ const sendEmail = (to, subject, message, link = { url: "", description: "" }) =>
         <body>
           <h1>${subject}</h1>
           <p>${message}</p>
-          <a id="link" href="${link.url}">${link.description}</a>
-          <p> Have any questions so far? Visit <a href="#">Sociopedia Support</a> or <a href="#">Contact Us</a>.</p>
+          <a id="link" href="${link.url}">${link.title}</a>
+          <p> Have any questions so far? Visit <a href="#">FriendNexus Support</a> or <a href="#">Contact Us</a>.</p>
           <p>Thanks,</p>
-          <p>Sociopedia</p>
+          <p>FriendNexus</p>
         </body>
       </html>
     `;
@@ -62,13 +62,23 @@ const sendEmail = (to, subject, message, link = { url: "", description: "" }) =>
         subject: subject,
         html
     };
+    // try{
+    //   const info = await transport.sendMail(mailOptions);
+    //   return {
+    //     ok: true,
+    //     data: info
+    //   }
+    // }catch(err){
+    //   return {
+    //     ok: false,
+    //     data: err
+    //   }
+    // }
     transport.sendMail(mailOptions, (err, info) => {
-        if (err) {
-            console.error('Email sending failed:', err);
-        }
-        else {
-            console.log('Email sent: ' + info.response);
-        }
+        if (err)
+            console.log(err);
+        else
+            console.log(info);
     });
 });
 exports.default = sendEmail;

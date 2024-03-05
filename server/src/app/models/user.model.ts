@@ -31,6 +31,22 @@ const userSchema = new mongoose.Schema({
     changePasswordAt: {
       type: Date,
       default: new Date()
+    },
+    emailVerificationCode: {
+      code: {
+        type: String,
+      },
+      expireAt: {
+        type: Date,
+      }
+    },
+    resetPasswordCode: {
+      code: {
+        type: String,
+      },
+      expireAt: {
+        type: Date,
+      }
     }
   },
   { timestamps: true }
@@ -41,6 +57,7 @@ userSchema.pre("save", async function (next) {
     if (this.isModified("password")) {
       this.password = bcrypt.hashSync(this.password, 8);
       this.changePasswordAt = new Date();
+      await this.model("token").deleteMany({ user: this._id });
     }
     next();
   } catch(err) {

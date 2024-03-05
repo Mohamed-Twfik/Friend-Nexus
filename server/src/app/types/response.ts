@@ -1,13 +1,11 @@
-export type ErrorMessage = {
+type Response = {
   message: string;
+};
+
+export type OKResponse = Response & {
+  data?: any;
+}
+
+export type ErrorResponse = OKResponse & {
   status: number;
-}
-
-export type Res = {
-  message: "Success..!";
-}
-
-export type loginRes = Res & {
-  token: string;
-  userId: string;
 }

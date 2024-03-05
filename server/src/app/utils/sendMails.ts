@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 dotenv.config();
 
-const sendEmail = async (to: string, subject: string, message: string, link = {url:"",description:""}) => {
+const sendEmail = async (to: string, subject: string, message: string, link = {url:"",title:""}) => {
   const transport = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -17,7 +17,7 @@ const sendEmail = async (to: string, subject: string, message: string, link = {u
           <meta charset="UTF-8">
           <meta http-equiv="X-UA-Compatible" content="IE=edge">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Farm Vision Email</title>
+          <title>FriendNexus</title>
           <style>
             body{
               text-align: center;
@@ -36,10 +36,10 @@ const sendEmail = async (to: string, subject: string, message: string, link = {u
         <body>
           <h1>${subject}</h1>
           <p>${message}</p>
-          <a id="link" href="${link.url}">${link.description}</a>
-          <p> Have any questions so far? Visit <a href="#">Sociopedia Support</a> or <a href="#">Contact Us</a>.</p>
+          <a id="link" href="${link.url}">${link.title}</a>
+          <p> Have any questions so far? Visit <a href="#">FriendNexus Support</a> or <a href="#">Contact Us</a>.</p>
           <p>Thanks,</p>
-          <p>Sociopedia</p>
+          <p>FriendNexus</p>
         </body>
       </html>
     `
@@ -49,12 +49,9 @@ const sendEmail = async (to: string, subject: string, message: string, link = {u
     subject: subject,
     html
   }
-  transport.sendMail(mailOptions, (err: Error | null, info: any) => {
-    if (err) {
-      console.error('Email sending failed:', err);
-    } else {
-      console.log('Email sent: ' + info.response);
-    }
+  transport.sendMail(mailOptions, (err, info) => {
+    if(err) console.log(err);
+    else console.log(info);
   });
 }
 

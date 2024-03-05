@@ -1,6 +1,8 @@
 import express, { Application, Request, NextFunction, Response } from "express";
 import path from "path";
-import { ErrorMessage } from "./types/response";
+import cron from "node-cron";
+
+import { ErrorResponse } from "./types/response";
 import errorMessage from "./utils/errorMessage";
 // import swagger from '../swagger';
 import authRouter from "./routes/auth.router"
@@ -9,8 +11,20 @@ import friendRouter from "./routes/friend.router"
 import chatRouter from "./routes/chat.router"
 import messageRouter from "./routes/message.router"
 import authentication from "./middlewares/Auth/authentication";
+import tokenModel from "./models/token.model";
 
 export default (app: Application)=>{
+
+    // Schedule a task to run every hour
+    cron.schedule('0 * * * *', async () => {
+    try {
+        // Find and delete tokens that have expired
+        await tokenModel.deleteMany({ expireAt: { $lt: new Date() } });
+    } catch (error) {
+        console.error('Error deleting expired tokens:', error);
+    }
+    });
+
     app.use("/auth", authRouter);
     app.use("/file", authentication, express.static(path.join(__dirname, "uploads")))
     app.use("/users", authentication, userRouter);
@@ -26,8 +40,7 @@ export default (app: Application)=>{
     });
 
     // to catch any error
-    app.use((error: ErrorMessage, req: Request, res: Response, next: NextFunction) => {
-        const {message, status} = error;
-        res.status(status || 500).json({message, status});
+    app.use((error: ErrorResponse, req: Request, res: Response, next: NextFunction): void => {
+        res.status(error.status || 500).json(error);
     });
 }

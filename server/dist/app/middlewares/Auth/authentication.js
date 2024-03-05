@@ -17,6 +17,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const user_model_1 = __importDefault(require("../../models/user.model"));
 const catchErrors_1 = __importDefault(require("../../utils/catchErrors"));
 const errorMessage_1 = __importDefault(require("../../utils/errorMessage"));
+const token_model_1 = __importDefault(require("../../models/token.model"));
 dotenv_1.default.config();
 exports.default = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     // [1] check if send token
@@ -24,9 +25,10 @@ exports.default = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 
     if (!token)
         return next((0, errorMessage_1.default)(401, "Token required."));
     // [2] check if token valid or not
-    let decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET || "");
+    const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET || "");
     const user = yield user_model_1.default.findById(decoded.id);
-    if (!user)
+    const tokenData = yield token_model_1.default.findOne({ token, user: user === null || user === void 0 ? void 0 : user._id });
+    if (!user || !tokenData)
         return next((0, errorMessage_1.default)(401, "Invalid Token"));
     // [3] when user change password compare time
     if (user.changePasswordAt) {
@@ -36,5 +38,6 @@ exports.default = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 
             return next((0, errorMessage_1.default)(401, "Password Changed"));
     }
     req.user = user;
+    req.token = token;
     next();
 }));

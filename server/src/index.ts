@@ -1,13 +1,20 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import dotenv from "dotenv";
+import rateLimit from "express-rate-limit";
 import dbConnection from "./db/dbConnection";
 import router from "./app/router"
-import dotenv from "dotenv";
+
 
 dotenv.config();
 const app = express();
 const port = 5000;
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+});
+
 dbConnection(app, port);
 
 // CORS configuration
@@ -24,8 +31,13 @@ dbConnection(app, port);
 // };
 
 // Middlewares
+app.use(limiter);
 app.use(cors());
 app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use((req, res, next) => {
+  res.setHeader('Content-Security-Policy', "default-src 'self'");
+  next();
+});
 router(app);

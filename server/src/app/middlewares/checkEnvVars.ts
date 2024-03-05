@@ -7,7 +7,7 @@ import CustomRequest from "../types/customRequest";
 dotenv.config();
 
 export default catchErrors(async(req: CustomRequest, res: Response, next: NextFunction)=>{
-  const {DB_URL, MAIL_USER, MAIL_PASS, JWT_SECRET} = process.env;
-  if(!DB_URL || !MAIL_USER || !MAIL_PASS || !JWT_SECRET) return next(errorMessage(500, "missing environment variable"));
+  const {DB_URL, MAIL_USER, MAIL_PASS, JWT_SECRET, MAX_DEVICES_ALLOWED} = process.env;
+  if(!DB_URL || !MAIL_USER || !MAIL_PASS || !JWT_SECRET || !MAX_DEVICES_ALLOWED) return next(errorMessage(500, "Missing Environment Variable"));
   else return next();
 });
