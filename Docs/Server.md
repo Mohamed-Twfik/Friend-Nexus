@@ -29,11 +29,12 @@ for Google + Facebook and maybe others (Github?).
 **Users**:
 
 ```
-/users/list     [GET]
-/users/:userId  [GET]
-/users/new      [POST]
-/users/:userId  [PATCH]
-/users/:userId  [DELETE]
+/users/list             [GET]
+/users/:userId          [GET]
+/users/                 [PATCH]
+/users/updatePassword   [PATCH]
+/users/updateRole       [PATCH]
+/users/:userId          [DELETE]
 ```
 
 **Devices**:

@@ -47,17 +47,23 @@ const userSchema = new mongoose.Schema({
       expireAt: {
         type: Date,
       }
+    },
+    newEmail: {
+      type: String,
+    },
+    verified: {
+      type: Boolean,
+      default: false
     }
   },
-  { timestamps: true }
-);
+  { timestamps: true });
 
 userSchema.pre("save", async function (next) {
   try{
     if (this.isModified("password")) {
       this.password = bcrypt.hashSync(this.password, 8);
       this.changePasswordAt = new Date();
-      await this.model("token").deleteMany({ user: this._id });
+      await this.model("Token").deleteMany({ user: this._id });
     }
     next();
   } catch(err) {
@@ -65,8 +71,13 @@ userSchema.pre("save", async function (next) {
   }
 });
 
-// userSchema.pre(/^find/, async function () {
-//   this.select({ __v: 0, code: 0, changePasswordAt: 0});
-// });
+userSchema.pre(/^find/, async function (this: any, next) {
+  this.select({ __v: 0, password: 0, changePasswordAt: 0, emailVerificationCode: 0, resetPasswordCode: 0 });
+});
+
+userSchema.post("deleteOne", async function (this: any, doc, next) {
+  await this.model("Token").deleteMany({ user: doc._id });
+  next();
+});
 
 export default mongoose.model("User", userSchema);

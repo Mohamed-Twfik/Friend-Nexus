@@ -1,6 +1,6 @@
-import { body } from "express-validator";
-import userModel from "../../models/user.model";
 import bcrypt from "bcrypt";
+import { body } from "express-validator";
+import userModel from "../models/user.model";
 
 export const signinValidator = ()=>{
   return [
@@ -9,7 +9,7 @@ export const signinValidator = ()=>{
       .isEmail().withMessage("Incorrect Email Or Password")
       .normalizeEmail()
       .custom(async (value, {req}) => {
-        const user = await userModel.findOne({email: value});
+        const user = await userModel.findOne({ email: value }).select({ password: 1 });
         if(!user) throw new Error("Incorrect Email Or Password");
         req.user = user;
       }),

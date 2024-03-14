@@ -1,11 +1,11 @@
 import dotenv from "dotenv";
-import { Request, NextFunction, Response } from "express";
+import { NextFunction, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import User from "../../models/user.model";
-import catchError from "../../utils/catchErrors";
-import errorMessage from "../../utils/errorMessage";
-import CustomRequest from "../../types/customRequest";
-import tokenModel from "../../models/token.model";
+import tokenModel from "../models/token.model";
+import userModel from "../models/user.model";
+import CustomRequest from "../types/customRequest";
+import catchError from "../utils/catchErrors";
+import errorMessage from "../utils/errorMessage";
 
 dotenv.config();
 
@@ -16,7 +16,7 @@ export default catchError(async (req: CustomRequest, res: Response, next: NextFu
   
   // [2] check if token valid or not
   const decoded = jwt.verify(token, process.env.JWT_SECRET || "") as JwtPayload;
-  const user = await User.findById(decoded.id);
+  const user = await userModel.findById(decoded.id).select({password: 0, emailVerificationCode: 1});
   const tokenData = await tokenModel.findOne({token, user: user?._id});
   if (!user || !tokenData) return next(errorMessage(401, "Invalid Token"));
 

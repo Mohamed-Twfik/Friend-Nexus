@@ -20,8 +20,9 @@ const detector = new DeviceDetector();
 export const signin = catchErrors(async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return next(errorMessage(422, "Invalid Data", errors));
-  
+
   const user = req.user;
+  if (!user.verified) return next(errorMessage(401, "Email Not Verified"));
   const userDevicesCount = await tokenModel.find({ user: user._id }).countDocuments();
   if (userDevicesCount >= parseInt(process.env.MAX_DEVICES_ALLOWED as string)) return next(errorMessage(401, `Maximum ${process.env.MAX_DEVICES_ALLOWED} devices are allowed`));
 
@@ -79,9 +80,8 @@ export const verifyEmail = catchErrors(async (req, res, next) => {
   if (!errors.isEmpty()) return next(errorMessage(422, "Invalid Data", errors));
 
   const user = req.user;
-  console.log(1);
   user.emailVerificationCode = undefined;
-  console.log(2);
+  user.verified = true;
   await user.save();
   const response: OKResponse = { message: "Email Verified Successfully" };
   return res.status(202).json(response);

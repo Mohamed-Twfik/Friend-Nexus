@@ -4,7 +4,7 @@ interface IApiFeature {
   paginate(): IApiFeature;
   filter(): IApiFeature;
   sort(): IApiFeature;
-  search(): IApiFeature;
+  search(conditions: object[]): IApiFeature;
   fields(): IApiFeature;
 }
 export default class ApiFeature implements IApiFeature {
@@ -54,13 +54,10 @@ export default class ApiFeature implements IApiFeature {
   }
 
   //[4] to make search
-  search() {
+  search(conditions: object[]) {
     if (this.queryString.search) {
       this.mongooseQuery.find({
-        $or: [
-          {name: { $regex: this.queryString.search, $options: "i" },},
-          {type: { $regex: this.queryString.search, $options: "i" },},
-        ],
+        $or: conditions,
       });
     }
     return this;
@@ -73,6 +70,16 @@ export default class ApiFeature implements IApiFeature {
       this.mongooseQuery.select(fields);
     }
     return this;
+  }
+
+  //[6] to get the result
+  async get() {
+    return await this.mongooseQuery;
+  }
+
+  //[7] to get the count
+  async count() {
+    return await this.mongooseQuery.countDocuments();
   }
 
 }
