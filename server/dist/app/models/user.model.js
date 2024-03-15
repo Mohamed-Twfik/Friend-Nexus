@@ -39,7 +39,6 @@ const userSchema = new mongoose_1.default.Schema({
     },
     logo: {
         type: String,
-        default: "default-logo.jpg"
     },
     changePasswordAt: {
         type: Date,
@@ -60,6 +59,13 @@ const userSchema = new mongoose_1.default.Schema({
         expireAt: {
             type: Date,
         }
+    },
+    newEmail: {
+        type: String,
+    },
+    verified: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true });
 userSchema.pre("save", function (next) {
@@ -68,7 +74,7 @@ userSchema.pre("save", function (next) {
             if (this.isModified("password")) {
                 this.password = bcrypt_1.default.hashSync(this.password, 8);
                 this.changePasswordAt = new Date();
-                yield this.model("token").deleteMany({ user: this._id });
+                yield this.model("Token").deleteMany({ user: this._id });
             }
             next();
         }
@@ -77,7 +83,15 @@ userSchema.pre("save", function (next) {
         }
     });
 });
-// userSchema.pre(/^find/, async function () {
-//   this.select({ __v: 0, code: 0, changePasswordAt: 0});
-// });
+userSchema.pre(/^find/, function (next) {
+    return __awaiter(this, void 0, void 0, function* () {
+        this.select({ __v: 0, password: 0, changePasswordAt: 0, emailVerificationCode: 0, resetPasswordCode: 0, newEmail: 0, verified: 0 });
+    });
+});
+userSchema.post("deleteOne", function (doc, next) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield this.model("Token").deleteMany({ user: doc._id });
+        next();
+    });
+});
 exports.default = mongoose_1.default.model("User", userSchema);

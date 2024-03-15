@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import IUser from "../types/user.type";
 
-const userSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema<IUser>({
     email: {
       type: String,
       unique: true,
@@ -26,7 +27,6 @@ const userSchema = new mongoose.Schema({
     },
     logo: {
       type: String,
-      default: "default-logo.jpg"
     },
     changePasswordAt: {
       type: Date,
@@ -72,7 +72,7 @@ userSchema.pre("save", async function (next) {
 });
 
 userSchema.pre(/^find/, async function (this: any, next) {
-  this.select({ __v: 0, password: 0, changePasswordAt: 0, emailVerificationCode: 0, resetPasswordCode: 0 });
+  this.select({ __v: 0, password: 0, changePasswordAt: 0, emailVerificationCode: 0, resetPasswordCode: 0, newEmail: 0, verified: 0 });
 });
 
 userSchema.post("deleteOne", async function (this: any, doc, next) {

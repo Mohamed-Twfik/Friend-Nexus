@@ -17,7 +17,8 @@ const nodemailer_1 = __importDefault(require("nodemailer"));
 dotenv_1.default.config();
 const sendEmail = (to, subject, message, link = { url: "", title: "" }) => __awaiter(void 0, void 0, void 0, function* () {
     const transport = nodemailer_1.default.createTransport({
-        service: 'gmail',
+        host: process.env.MAIL_HOST,
+        service: process.env.MAIL_SERVICE,
         auth: {
             user: process.env.MAIL_USER,
             pass: process.env.MAIL_PASS
@@ -62,18 +63,6 @@ const sendEmail = (to, subject, message, link = { url: "", title: "" }) => __awa
         subject: subject,
         html
     };
-    // try{
-    //   const info = await transport.sendMail(mailOptions);
-    //   return {
-    //     ok: true,
-    //     data: info
-    //   }
-    // }catch(err){
-    //   return {
-    //     ok: false,
-    //     data: err
-    //   }
-    // }
     transport.sendMail(mailOptions, (err, info) => {
         if (err)
             console.log(err);

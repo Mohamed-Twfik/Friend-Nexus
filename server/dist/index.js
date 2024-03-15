@@ -8,6 +8,7 @@ const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
+const path_1 = __importDefault(require("path"));
 const dbConnection_1 = __importDefault(require("./db/dbConnection"));
 const router_1 = __importDefault(require("./app/router"));
 dotenv_1.default.config();
@@ -31,6 +32,7 @@ const limiter = (0, express_rate_limit_1.default)({
 //   },
 // };
 // Middlewares
+app.use(express_1.default.static(path_1.default.join(__dirname, "uploads")));
 app.use(limiter);
 app.use((0, cors_1.default)());
 app.use((0, helmet_1.default)());

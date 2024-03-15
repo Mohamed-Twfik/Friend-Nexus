@@ -9,7 +9,7 @@ import authentication from "./middlewares/authentication";
 import tokenModel from "./models/token.model";
 import authRouter from "./routes/auth.router";
 import chatRouter from "./routes/chat.router";
-import friendRouter from "./routes/friend.router";
+import friendRouter from "./routes/friendShip.router";
 import messageRouter from "./routes/message.router";
 import userRouter from "./routes/user.router";
 
@@ -25,10 +25,12 @@ export default (app: Application)=>{
         }
     });
 
+    app.get("/file/:filename", authentication, (req, res) => {
+        return res.sendFile(path.join(__dirname, "..", "..", "uploads", req.params.filename));
+    });
     app.use("/auth", authRouter);
-    app.use("/file", authentication, express.static(path.join(__dirname, "uploads")))
     app.use("/users", authentication, userRouter);
-    app.use("/friends", authentication, friendRouter);
+    app.use("/friendShips", authentication, friendRouter);
     app.use("/chats", authentication, chatRouter);
     app.use("/messages", authentication, messageRouter);
 
@@ -36,7 +38,7 @@ export default (app: Application)=>{
 
     // Not Found Page
     app.use((req, res, next) => {
-        next(errorMessage(404, `Not Found URL: ${req.originalUrl} With Method :${req.method}`));
+        next(errorMessage(404, `Not Found URL: ${req.originalUrl} With Method: ${req.method}`));
     });
 
     // to catch any error

@@ -9,7 +9,7 @@ export const signinValidator = ()=>{
       .isEmail().withMessage("Incorrect Email Or Password")
       .normalizeEmail()
       .custom(async (value, {req}) => {
-        const user = await userModel.findOne({ email: value }).select({ password: 1 });
+        const user = await userModel.findOne({ email: value }).select({ password: 1, verified: 1});
         if(!user) throw new Error("Incorrect Email Or Password");
         req.user = user;
       }),
@@ -63,7 +63,7 @@ export const verifyEmailValidator = ()=>{
       .isEmail().withMessage("Incorrect Email Or Code")
       .normalizeEmail()
       .custom(async (value, {req}) => {
-        const user = await userModel.findOne({email: value});
+        const user = await userModel.findOne({email: value}).select({emailVerificationCode: 1});
         if(!user) throw new Error("Incorrect Email Or Code");
         req.user = user;
       }),
@@ -73,6 +73,7 @@ export const verifyEmailValidator = ()=>{
       .isLength({min: 8}).withMessage("Incorrect Email Or Code")
       .custom(async (value, {req})=>{
         const user = req.user;
+        console.log(user)
         if (!user.emailVerificationCode) throw new Error("Email Already Verified");
 
         else if (user.emailVerificationCode.code !== value) throw new Error("Incorrect Email Or Code");
@@ -105,7 +106,7 @@ export const newPasswordValidator = ()=>{
       .isEmail().withMessage("Incorrect Email Or Code")
       .normalizeEmail()
       .custom(async (value, {req}) => {
-        const user = await userModel.findOne({email: value});
+        const user = await userModel.findOne({email: value}).select({resetPasswordCode: 1});
         if(!user) throw new Error("Incorrect Email Or Code");
         req.user = user;
       }),

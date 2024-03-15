@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
+import path from "path";
 import dbConnection from "./db/dbConnection";
 import router from "./app/router"
 
@@ -31,6 +32,7 @@ dbConnection(app, port);
 // };
 
 // Middlewares
+app.use(express.static(path.join(__dirname, "uploads")));
 app.use(limiter);
 app.use(cors());
 app.use(helmet());

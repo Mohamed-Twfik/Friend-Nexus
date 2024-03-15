@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
+import IFriendShip from "../types/friendShip.type";
 
-const friendShipSchema = new mongoose.Schema({
+const friendShipSchema = new mongoose.Schema<IFriendShip>({
     status: {
       type: String,
       enum: ["pending", "accepted", "rejected"],

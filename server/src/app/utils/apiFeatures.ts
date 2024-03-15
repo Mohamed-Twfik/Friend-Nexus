@@ -54,11 +54,9 @@ export default class ApiFeature implements IApiFeature {
   }
 
   //[4] to make search
-  search(conditions: object[]) {
+  search(conditions: object) {
     if (this.queryString.search) {
-      this.mongooseQuery.find({
-        $or: conditions,
-      });
+      this.mongooseQuery.find(conditions);
     }
     return this;
   }
@@ -75,11 +73,6 @@ export default class ApiFeature implements IApiFeature {
   //[6] to get the result
   async get() {
     return await this.mongooseQuery;
-  }
-
-  //[7] to get the count
-  async count() {
-    return await this.mongooseQuery.countDocuments();
   }
 
 }

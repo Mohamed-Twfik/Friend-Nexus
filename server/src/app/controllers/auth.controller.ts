@@ -29,7 +29,7 @@ export const signin = catchErrors(async (req, res, next) => {
   const clientData = detector.parse(req.header("user-agent") as string);
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET as string, {expiresIn: "1h"});
   
-  const tokenData: tokenType = {
+  const tokenData = {
     token,
     client: clientData.client,
     os: clientData.os,
@@ -61,7 +61,7 @@ export const signup = catchErrors(async (req, res, next) => {
   const message = `Your verification code is ${code}`;
   sendMails(to, subject, message);
 
-  const userData: userType = {
+  const userData = {
     email,
     password,
     fname,

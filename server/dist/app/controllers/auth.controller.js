@@ -30,6 +30,8 @@ exports.signin = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0
     if (!errors.isEmpty())
         return next((0, errorMessage_1.default)(422, "Invalid Data", errors));
     const user = req.user;
+    if (!user.verified)
+        return next((0, errorMessage_1.default)(401, "Email Not Verified"));
     const userDevicesCount = yield token_model_1.default.find({ user: user._id }).countDocuments();
     if (userDevicesCount >= parseInt(process.env.MAX_DEVICES_ALLOWED))
         return next((0, errorMessage_1.default)(401, `Maximum ${process.env.MAX_DEVICES_ALLOWED} devices are allowed`));
@@ -44,9 +46,6 @@ exports.signin = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0
         user: user._id
     };
     yield token_model_1.default.create(tokenData);
-    setTimeout(() => {
-        token_model_1.default.findOneAndDelete({ token, user: user._id });
-    }, 1000 * 60 * 60);
     const response = {
         message: "Login Success",
         data: {
@@ -82,9 +81,8 @@ exports.verifyEmail = (0, catchErrors_1.default)((req, res, next) => __awaiter(v
     if (!errors.isEmpty())
         return next((0, errorMessage_1.default)(422, "Invalid Data", errors));
     const user = req.user;
-    console.log(1);
     user.emailVerificationCode = undefined;
-    console.log(2);
+    user.verified = true;
     yield user.save();
     const response = { message: "Email Verified Successfully" };
     return res.status(202).json(response);

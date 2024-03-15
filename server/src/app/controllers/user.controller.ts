@@ -13,13 +13,14 @@ export const getAllUsers = catchErrors(async (req, res, next) => {
     .paginate()
     .filter()
     .fields()
-    .search([
-      { fname: { $regex: req.query.search, $options: "i" } },
-      { lname: { $regex: req.query.search, $options: "i" } },
-      { email: { $regex: req.query.search, $options: "i" } },
-    ])
+    .search({
+      $or: [
+        { fname: { $regex: req.query.search, $options: "i" } },
+        { lname: { $regex: req.query.search, $options: "i" } },
+        { email: { $regex: req.query.search, $options: "i" } },
+      ]
+    })
     .sort();
-    // const total = await apiFeature.count();
     const result = await apiFeature.get();
     const total = result.length;
   const response: OKResponse = {
@@ -97,6 +98,9 @@ export const updateRole = catchErrors(async (req, res, next) => {
 
 
 export const requestUpdateEmail = catchErrors(async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return next(errorMessage(422, "Invalid Data", errors.array()));
+  
   const user = req.user;
   const email = req.body.email;
   const code = generateRandomCode(8);

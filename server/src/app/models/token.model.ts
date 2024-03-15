@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
+import IToken from "../types/token.type";
 
-const tokenSchema = new mongoose.Schema({
+const tokenSchema = new mongoose.Schema<IToken>({
     token: {
       type: String,
       unique: true,
