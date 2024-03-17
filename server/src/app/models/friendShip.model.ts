@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
-import IFriendShip from "../types/friendShip.type";
+import { IFriendShipSchema } from "../types/friendShip.type";
 
-const friendShipSchema = new mongoose.Schema<IFriendShip>({
+const friendShipSchema = new mongoose.Schema<IFriendShipSchema>({
     status: {
       type: String,
-      enum: ["pending", "accepted", "rejected"],
+      enum: ["pending", "accepted"],
       default: "pending"
     },
     user1: {
@@ -23,4 +23,4 @@ const friendShipSchema = new mongoose.Schema<IFriendShip>({
   { timestamps: true }
 );
 
-export default mongoose.model("FriendShip", friendShipSchema);
+export default mongoose.model<IFriendShipSchema>("FriendShip", friendShipSchema);

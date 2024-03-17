@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-import IUser from "../types/user.type";
+import { IUserSchema } from "../types/user.type";
 
-const userSchema = new mongoose.Schema<IUser>({
+const userSchema = new mongoose.Schema<IUserSchema>({
     email: {
       type: String,
       unique: true,
@@ -80,4 +80,4 @@ userSchema.post("deleteOne", async function (this: any, doc, next) {
   next();
 });
 
-export default mongoose.model("User", userSchema);
+export default mongoose.model<IUserSchema>("User", userSchema);

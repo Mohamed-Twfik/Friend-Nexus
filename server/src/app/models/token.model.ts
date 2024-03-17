@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
-import IToken from "../types/token.type";
+import { ITokenSchema } from "../types/token.type";
 
-const tokenSchema = new mongoose.Schema<IToken>({
+const tokenSchema = new mongoose.Schema<ITokenSchema>({
     token: {
       type: String,
       unique: true,
@@ -60,4 +60,4 @@ const tokenSchema = new mongoose.Schema<IToken>({
 )
 
 
-export default mongoose.model("Token", tokenSchema);
+export default mongoose.model<ITokenSchema>("Token", tokenSchema);

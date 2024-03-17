@@ -1,8 +1,6 @@
 import bcrypt from "bcrypt";
 import userModel from "../models/user.model";
 import {
-  codeValidator,
-  emailValidator,
   fnameValidator,
   lnameValidator,
   passwordValidator,

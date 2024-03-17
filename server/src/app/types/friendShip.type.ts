@@ -1,8 +1,10 @@
 import mongoose, { Document } from "mongoose";
-import IUser from "./user.type";
+import { IUserSchema } from "./user.type";
 
-export default interface IFriendShip extends Document{
-  status: "pending" | "accepted";
-  user1: mongoose.Types.ObjectId | IUser;
-  user2: mongoose.Types.ObjectId | IUser;
+export interface IFriendShip {
+  status?: "pending" | "accepted";
+  user1: mongoose.Types.ObjectId | IUserSchema;
+  user2: mongoose.Types.ObjectId | IUserSchema;
 };
+
+export interface IFriendShipSchema extends IFriendShip, Document {}

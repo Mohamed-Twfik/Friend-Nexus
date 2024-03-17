@@ -11,8 +11,8 @@ import generateRandomCode from "../utils/generateRandomCode";
 import sendMails from "../utils/sendMails";
 
 import {OKResponse} from "../types/response";
-import userType from "../types/user.type";
-import tokenType from "../types/token.type"; 
+import { IUser } from "../types/user.type";
+import { IToken } from "../types/token.type"; 
 
 dotenv.config();
 const detector = new DeviceDetector();
@@ -29,7 +29,7 @@ export const signin = catchErrors(async (req, res, next) => {
   const clientData = detector.parse(req.header("user-agent") as string);
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET as string, {expiresIn: "1h"});
   
-  const tokenData = {
+  const tokenData: IToken = {
     token,
     client: clientData.client,
     os: clientData.os,
@@ -61,7 +61,7 @@ export const signup = catchErrors(async (req, res, next) => {
   const message = `Your verification code is ${code}`;
   sendMails(to, subject, message);
 
-  const userData = {
+  const userData: IUser = {
     email,
     password,
     fname,

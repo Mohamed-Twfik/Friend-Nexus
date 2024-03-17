@@ -6,8 +6,8 @@ import catchErrors from "../utils/catchErrors";
 import ApiFeature from "../utils/apiFeatures";
 import { validationResult } from "express-validator";
 import errorMessage from "../utils/errorMessage";
-import IFriendShip from "../types/friendShip.type";
-import IUser from "../types/user.type";
+import { IFriendShipSchema, IFriendShip } from "../types/friendShip.type";
+import { IUserSchema } from "../types/user.type";
 
 export const getFriendList = catchErrors(async (req: CustomRequest, res: Response, next: NextFunction) => {
   const user = req.user;
@@ -37,10 +37,10 @@ export const getFriendList = catchErrors(async (req: CustomRequest, res: Respons
     .sort();
   const friendShips = await apiFeature.get();
   
-  const friendList = friendShips.map((friendShip: IFriendShip) => {
+  const friendList = friendShips.map((friendShip: IFriendShipSchema) => {
     const regex = new RegExp(search, "i");
-    const user1 = friendShip.user1 as IUser;
-    const user2 = friendShip.user2 as IUser;
+    const user1 = friendShip.user1 as IUserSchema;
+    const user2 = friendShip.user2 as IUserSchema;
     if (user1._id.toString() === user._id.toString()) {
       if (req.query.search) {
         if ((regex.test(user2.fname) || regex.test(user2.lname) || regex.test(user2.email))) return user2;
@@ -55,9 +55,14 @@ export const getFriendList = catchErrors(async (req: CustomRequest, res: Respons
     }
   });
 
+  const total = friendList.length;
+
   const response: OKResponse = {
     message: "Success",
-    data: friendList,
+    data: {
+      result: friendList,
+      total,
+    },
   };
   res.status(200).json(response);
 });
@@ -65,6 +70,7 @@ export const getFriendList = catchErrors(async (req: CustomRequest, res: Respons
 
 export const getFriendRequestList = catchErrors(async (req: CustomRequest, res: Response, next: NextFunction) => {
   const user = req.user;
+  const search = req.query.search+"" || "";
   const queryString = {
     page: req.query.page,
     pageSize: req.query.pageSize,
@@ -80,10 +86,23 @@ export const getFriendRequestList = catchErrors(async (req: CustomRequest, res: 
     .sort();
   const friendShips = await apiFeature.get();
 
-  const friendRequestList = friendShips.map((friendShip: IFriendShip) => friendShip.user1);
+  const friendRequestList = friendShips.map((friendShip: IFriendShipSchema) => {
+    const regex = new RegExp(search, "i");
+    const user1 = friendShip.user1 as IUserSchema;
+    if (req.query.search) {
+      if ((regex.test(user1.fname) || regex.test(user1.lname) || regex.test(user1.email))) return user1;
+    }
+    else return user1;
+  });
+
+  const total = friendRequestList.length;
+
   const response: OKResponse = {
     message: "Success",
-    data: friendRequestList,
+    data: {
+      result: friendRequestList,
+      total,
+    },
   };
   res.status(200).json(response);
 });
@@ -108,10 +127,23 @@ export const getFriendSendList = catchErrors(async (req: CustomRequest, res: Res
   const friendShips = await apiFeature.get();
   console.log(friendShips);
 
-  const friendSendList = friendShips.map((friendShip: IFriendShip) => friendShip.user2);
+  const friendSendList = friendShips.map((friendShip: IFriendShipSchema) => {
+    const regex = new RegExp(search, "i");
+    const user2 = friendShip.user2 as IUserSchema;
+    if (req.query.search) {
+      if ((regex.test(user2.fname) || regex.test(user2.lname) || regex.test(user2.email))) return user2;
+    }
+    else return user2;
+  });
+
+  const total = friendSendList.length;
+
   const response: OKResponse = {
     message: "Success",
-    data: friendSendList,
+    data: {
+      result: friendSendList,
+      total,
+    },
   };
   res.status(200).json(response);
 });
@@ -123,7 +155,7 @@ export const sendFriendRequest = catchErrors(async (req: CustomRequest, res: Res
   
   const user = req.user;
   const friend = req.wantedUser;
-  const friendShipData = {
+  const friendShipData: IFriendShip = {
     user1: user._id,
     user2: friend._id,
   }

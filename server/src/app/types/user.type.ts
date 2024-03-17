@@ -1,6 +1,6 @@
 import { Document } from 'mongoose'
 
-export default interface IUser extends Document {
+export interface IUser {
   email: string
   password: string
   fname: string
@@ -19,3 +19,5 @@ export default interface IUser extends Document {
   newEmail?: string
   verified?: boolean
 }
+
+export interface IUserSchema extends IUser, Document {}

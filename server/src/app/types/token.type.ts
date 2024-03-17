@@ -1,12 +1,14 @@
 import mongoose, { Document } from "mongoose";
 import { DeviceDetectorResult } from "device-detector-js"
-import IUser from "./user.type";
+import { IUserSchema } from "./user.type";
 
-export default interface IToken extends Document{
+export interface IToken {
   token: string
   client: DeviceDetectorResult["client"] | null
   os: DeviceDetectorResult["os"] | null
   device: DeviceDetectorResult["device"] | null
   bot: DeviceDetectorResult["bot"] | null
-  user: mongoose.Types.ObjectId | IUser
+  user: mongoose.Types.ObjectId | IUserSchema
 }
+
+export interface ITokenSchema extends IToken, Document {}
