@@ -7,12 +7,15 @@ import {
 import {
   tokenIdValidator
 } from "../middlewares/token.validator";
+import {
+  checkTokenOwner
+} from "../middlewares/token.permission";
 
 const router = express.Router();
 
 router.get("/list", getUserTokens);
-router.get("/:tokenId", tokenIdValidator(), getOneToken);
+router.get("/:tokenId", tokenIdValidator(), checkTokenOwner, getOneToken);
 
-router.delete("/:tokenId", tokenIdValidator(), deleteToken);
+router.delete("/:tokenId", tokenIdValidator(), checkTokenOwner, deleteToken);
 
 export default router;

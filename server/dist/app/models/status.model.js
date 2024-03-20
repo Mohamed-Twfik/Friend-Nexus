@@ -11,6 +11,10 @@ const statusSchema = new mongoose_1.default.Schema({
     content: {
         type: String,
     },
+    expireAt: {
+        type: Date,
+        default: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
+    },
     user: {
         type: mongoose_1.default.Schema.Types.ObjectId,
         ref: "User",

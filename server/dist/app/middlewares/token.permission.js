@@ -12,16 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.checkTokenOwner = void 0;
 const catchErrors_1 = __importDefault(require("../utils/catchErrors"));
 const errorMessage_1 = __importDefault(require("../utils/errorMessage"));
-const allowedTo = (...roles) => {
-    if (roles.length === 0)
-        roles = ["admin", "moderator", "user"];
-    return (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a;
-        if (!roles.includes(req.authUser.role))
-            return next((0, errorMessage_1.default)(401, `Not Authorized To Access This Route You Are ${(_a = req.authUser) === null || _a === void 0 ? void 0 : _a.role}`));
-        next();
-    }));
-};
-exports.default = allowedTo;
+exports.checkTokenOwner = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = req.authUser;
+    const token = req.token;
+    if (token.user.toString() !== user._id.toString())
+        return next((0, errorMessage_1.default)(403, "Access Denied"));
+    next();
+}));

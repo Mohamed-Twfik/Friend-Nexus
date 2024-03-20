@@ -1,11 +1,12 @@
 import friendShipModel from "../models/friendShip.model";
-import { userIdValidator } from "./shared.validator";
+import userModel from "../models/user.model";
+import { mongoIdValidator } from "./shared.validator";
 
 export const friendShipValidator = () => {
   return [
-    userIdValidator().custom(async (value, { req }) => {
-      const user = req.user;
-      const friend = req.wantedUser;
+    mongoIdValidator("user", userModel).custom(async (value, { req }) => {
+      const user = req.authUser;
+      const friend = req.user;
       const friendShip = await friendShipModel.findOne({
         $or: [
           { user1: user._id, user2: friend._id },
@@ -21,9 +22,9 @@ export const friendShipValidator = () => {
 
 export const sendFriendRequestValidator = () => {
   return [
-    userIdValidator().custom(async (value, { req }) => {
-      const user = req.user;
-      const friend = req.wantedUser;
+    mongoIdValidator("user", userModel).custom(async (value, { req }) => {
+      const user = req.authUser;
+      const friend = req.user;
       if (user._id.toString() === friend._id.toString()) {
         throw new Error("You can't send friend request to yourself");
       }

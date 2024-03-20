@@ -8,9 +8,11 @@ import { validationResult } from "express-validator";
 import errorMessage from "../utils/errorMessage";
 import { IFriendShipSchema, IFriendShip } from "../types/friendShip.type";
 import { IUserSchema } from "../types/user.type";
+import { IChatPrivate, IChatUser } from "../types/chat.type";
+import chatModel from "../models/chat.model";
 
 export const getFriendList = catchErrors(async (req: CustomRequest, res: Response, next: NextFunction) => {
-  const user = req.user;
+  const user = req.authUser;
   const search = req.query.search+"" || "";
   const queryString = {
     page: req.query.page,
@@ -69,7 +71,7 @@ export const getFriendList = catchErrors(async (req: CustomRequest, res: Respons
 
 
 export const getFriendRequestList = catchErrors(async (req: CustomRequest, res: Response, next: NextFunction) => {
-  const user = req.user;
+  const user = req.authUser;
   const search = req.query.search+"" || "";
   const queryString = {
     page: req.query.page,
@@ -109,7 +111,7 @@ export const getFriendRequestList = catchErrors(async (req: CustomRequest, res: 
 
 
 export const getFriendSendList = catchErrors(async (req: CustomRequest, res: Response, next: NextFunction) => {
-  const user = req.user;
+  const user = req.authUser;
   const search = req.query.search+"" || "";
   const queryString = {
     page: req.query.page,
@@ -153,8 +155,8 @@ export const sendFriendRequest = catchErrors(async (req: CustomRequest, res: Res
   const errors = validationResult(req);
   if (!errors.isEmpty()) return next(errorMessage(422, "Invalid Data", errors.array()));
   
-  const user = req.user;
-  const friend = req.wantedUser;
+  const user = req.authUser;
+  const friend = req.user;
   const friendShipData: IFriendShip = {
     user1: user._id,
     user2: friend._id,
@@ -175,6 +177,10 @@ export const acceptFriendRequest = catchErrors(async (req: CustomRequest, res: R
   const friendShip = req.friendShip;
   friendShip.status = "accepted";
   await friendShip.save();
+  const chatData: IChatPrivate = {
+    friendShip: friendShip._id
+  };
+  const chat = await chatModel.create(chatData);
 
   const response: OKResponse = {
     message: "Success",

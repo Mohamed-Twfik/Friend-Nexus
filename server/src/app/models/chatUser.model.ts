@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
+import { IChatUserSchema } from "../types/chat.type";
 
-const chatUserSchema = new mongoose.Schema({
+const chatUserSchema = new mongoose.Schema<IChatUserSchema>({
     userRole: {
       type: String,
       enum: ["admin", "moderator", "user"],
@@ -22,4 +23,4 @@ const chatUserSchema = new mongoose.Schema({
   { timestamps: true }
 );
 
-export default mongoose.model("ChatUser", chatUserSchema);
+export default mongoose.model<IChatUserSchema>("ChatUser", chatUserSchema);

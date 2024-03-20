@@ -6,7 +6,7 @@ import friendShipModel from "../models/friendShip.model";
 import { IStatus } from "../types/status.type";
 
 export const getUserStatusList = catchErrors(async (req, res, next) => {
-  const user = req.user;
+  const user = req.authUser;
   const queryString = {
     page: req.query.page,
     pageSize: req.query.pageSize,
@@ -37,7 +37,7 @@ export const getUserStatusList = catchErrors(async (req, res, next) => {
 
 
 export const getFriendsStatusList = catchErrors(async (req, res, next) => {
-  const user = req.user;
+  const user = req.authUser;
   const queryString = {
     page: req.query.page,
     pageSize: req.query.pageSize,
@@ -90,7 +90,7 @@ export const getOneStatus = catchErrors(async (req, res, next) => {
 
 
 export const createStatus = catchErrors(async (req, res, next) => {
-  const user = req.user;
+  const user = req.authUser;
   const { content } = req.body;
   const statusData: IStatus = {
     content: content || "",

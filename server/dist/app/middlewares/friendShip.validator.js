@@ -14,12 +14,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendFriendRequestValidator = exports.friendShipValidator = void 0;
 const friendShip_model_1 = __importDefault(require("../models/friendShip.model"));
+const user_model_1 = __importDefault(require("../models/user.model"));
 const shared_validator_1 = require("./shared.validator");
 const friendShipValidator = () => {
     return [
-        (0, shared_validator_1.userIdValidator)().custom((value, { req }) => __awaiter(void 0, void 0, void 0, function* () {
-            const user = req.user;
-            const friend = req.wantedUser;
+        (0, shared_validator_1.mongoIdValidator)("user", user_model_1.default).custom((value, { req }) => __awaiter(void 0, void 0, void 0, function* () {
+            const user = req.authUser;
+            const friend = req.user;
             const friendShip = yield friendShip_model_1.default.findOne({
                 $or: [
                     { user1: user._id, user2: friend._id },
@@ -35,9 +36,9 @@ const friendShipValidator = () => {
 exports.friendShipValidator = friendShipValidator;
 const sendFriendRequestValidator = () => {
     return [
-        (0, shared_validator_1.userIdValidator)().custom((value, { req }) => __awaiter(void 0, void 0, void 0, function* () {
-            const user = req.user;
-            const friend = req.wantedUser;
+        (0, shared_validator_1.mongoIdValidator)("user", user_model_1.default).custom((value, { req }) => __awaiter(void 0, void 0, void 0, function* () {
+            const user = req.authUser;
+            const friend = req.user;
             if (user._id.toString() === friend._id.toString()) {
                 throw new Error("You can't send friend request to yourself");
             }

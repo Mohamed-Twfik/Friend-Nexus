@@ -12,37 +12,39 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getOneUserPermission = exports.deleteUserPermission = void 0;
+exports.deleteToken = exports.getOneToken = exports.getUserTokens = void 0;
 const express_validator_1 = require("express-validator");
-const friendShip_model_1 = __importDefault(require("../models/friendShip.model"));
+const token_model_1 = __importDefault(require("../models/token.model"));
 const catchErrors_1 = __importDefault(require("../utils/catchErrors"));
 const errorMessage_1 = __importDefault(require("../utils/errorMessage"));
-exports.deleteUserPermission = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const errors = (0, express_validator_1.validationResult)(req);
-    if (!errors.isEmpty())
-        return next((0, errorMessage_1.default)(422, "Invalid Data", errors.array()));
+exports.getUserTokens = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.authUser;
-    const wantedUser = req.user;
-    if (user.role === "admin" || user.role === "moderator" || user._id.toString() === wantedUser._id.toString())
-        return next();
-    next((0, errorMessage_1.default)(403, "Access Denied"));
+    const tokens = yield token_model_1.default.find({ user: user._id });
+    const response = {
+        message: "Success",
+        data: tokens
+    };
+    res.status(200).json(response);
 }));
-exports.getOneUserPermission = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getOneToken = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty())
         return next((0, errorMessage_1.default)(422, "Invalid Data", errors.array()));
-    const user = req.authUser;
-    const wantedUser = req.user;
-    if (user.role === "admin" || user.role === "moderator")
-        return next();
-    const friendship = yield friendShip_model_1.default.findOne({
-        $or: [
-            { $and: [{ user1: user._id }, { user2: wantedUser._id }, { status: "accepted" }] },
-            { $and: [{ user1: wantedUser._id }, { user2: user._id }, { status: "accepted" }] },
-        ],
-    });
-    if (!friendship)
-        return next((0, errorMessage_1.default)(403, "Access Denied"));
-    req.friendship = friendship;
-    next();
+    const token = req.token;
+    const response = {
+        message: "Success",
+        data: token
+    };
+    res.status(200).json(response);
+}));
+exports.deleteToken = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const errors = (0, express_validator_1.validationResult)(req);
+    if (!errors.isEmpty())
+        return next((0, errorMessage_1.default)(422, "Invalid Data", errors.array()));
+    const token = req.token;
+    yield token.deleteOne();
+    const response = {
+        message: "Success",
+    };
+    res.status(200).json(response);
 }));

@@ -4,12 +4,14 @@ import {
   fnameValidator,
   lnameValidator,
   passwordValidator,
-  userIdValidator
+  mongoIdValidator
 } from "./shared.validator";
 import { body } from "express-validator";
 
-export const validUserId = () => {
-  return [userIdValidator()];
+export const userIdValidator = () => {
+  return [
+    mongoIdValidator("user", userModel),
+  ];
 };
 
 export const updateUserValidator = () => {
@@ -24,9 +26,10 @@ export const updatePasswordValidator = () => {
   return [
     passwordValidator("Incorrect Old Password", "oldPassword")
       .bail({ level: "request" })
-      .custom(async (value, { req }) => { 
-        const user = await userModel.findById(req.user._id).select({ password: 1 });
-        const match = await bcrypt.compare(value, user?.password || "");
+      .custom(async (value, { req }) => {
+        const user = req.authUser; 
+        const userData = await userModel.findById(user._id).select({ password: 1 });
+        const match = await bcrypt.compare(value, userData?.password || "");
         if (!match) throw new Error("Incorrect Old Password");
       })
       .bail({ level: "request" }),
@@ -54,7 +57,7 @@ export const verifyNewEmailValidator = () => {
       .trim()
       .isLength({ min: 8 }).withMessage("Invalid Code")
       .custom(async (value, { req }) => {
-        const user = req.user;
+        const user = req.authUser;
         if (!user.newEmail) throw new Error("Please request to update email first");
 
         else if (user.emailVerificationCode.code !== value) throw new Error("Invalid Code");

@@ -7,7 +7,7 @@ export const getOneStatusPermission = catchErrors(async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return next(errorMessage(422, "Invalid Data", errors.array()));
 
-  const user = req.user;
+  const user = req.authUser;
   const status = req.status;
   const friendShip = await friendShipModel.findOne({
     $or: [
@@ -24,7 +24,7 @@ export const deleteStatusPermission = catchErrors(async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return next(errorMessage(422, "Invalid Data", errors.array()));
 
-  const user = req.user;
+  const user = req.authUser;
   const status = req.status;
   if (status.user.toString() !== user._id.toString()) return next(errorMessage(403, "Access Denied"));
   next();

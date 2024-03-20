@@ -7,7 +7,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const friendShipSchema = new mongoose_1.default.Schema({
     status: {
         type: String,
-        enum: ["pending", "accepted", "rejected"],
+        enum: ["pending", "accepted"],
         default: "pending"
     },
     user1: {

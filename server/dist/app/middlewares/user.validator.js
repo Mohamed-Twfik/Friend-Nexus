@@ -12,15 +12,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyNewEmailValidator = exports.requestUpdateEmailValidator = exports.updatePasswordValidator = exports.updateUserValidator = exports.validUserId = void 0;
+exports.verifyNewEmailValidator = exports.requestUpdateEmailValidator = exports.updatePasswordValidator = exports.updateUserValidator = exports.userIdValidator = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const user_model_1 = __importDefault(require("../models/user.model"));
 const shared_validator_1 = require("./shared.validator");
 const express_validator_1 = require("express-validator");
-const validUserId = () => {
-    return [(0, shared_validator_1.userIdValidator)()];
+const userIdValidator = () => {
+    return [
+        (0, shared_validator_1.mongoIdValidator)("user", user_model_1.default),
+    ];
 };
-exports.validUserId = validUserId;
+exports.userIdValidator = userIdValidator;
 const updateUserValidator = () => {
     return [
         (0, shared_validator_1.fnameValidator)().optional(),
@@ -33,8 +35,9 @@ const updatePasswordValidator = () => {
         (0, shared_validator_1.passwordValidator)("Incorrect Old Password", "oldPassword")
             .bail({ level: "request" })
             .custom((value, { req }) => __awaiter(void 0, void 0, void 0, function* () {
-            const user = yield user_model_1.default.findById(req.user._id).select({ password: 1 });
-            const match = yield bcrypt_1.default.compare(value, (user === null || user === void 0 ? void 0 : user.password) || "");
+            const user = req.authUser;
+            const userData = yield user_model_1.default.findById(user._id).select({ password: 1 });
+            const match = yield bcrypt_1.default.compare(value, (userData === null || userData === void 0 ? void 0 : userData.password) || "");
             if (!match)
                 throw new Error("Incorrect Old Password");
         }))
@@ -63,7 +66,7 @@ const verifyNewEmailValidator = () => {
             .trim()
             .isLength({ min: 8 }).withMessage("Invalid Code")
             .custom((value, { req }) => __awaiter(void 0, void 0, void 0, function* () {
-            const user = req.user;
+            const user = req.authUser;
             if (!user.newEmail)
                 throw new Error("Please request to update email first");
             else if (user.emailVerificationCode.code !== value)

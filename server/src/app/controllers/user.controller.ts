@@ -35,7 +35,7 @@ export const getAllUsers = catchErrors(async (req, res, next) => {
 
 
 export const getUser = catchErrors(async (req, res, next) => {
-  const user = req.wantedUser;
+  const user = req.user;
   const response: OKResponse = {
     message: "Success",
     data: user,
@@ -48,7 +48,7 @@ export const updateUser = catchErrors(async (req, res, next) => {
   const errors = validationResult(req);
   if(!errors.isEmpty()) return next(errorMessage(422, "Invalid Data", errors.array()));
 
-  const user = req.user;
+  const user = req.authUser;
   user.fname = req.body.fname || user.fname;
   user.lname = req.body.lname || user.lname;
 
@@ -66,7 +66,7 @@ export const updatePassword = catchErrors(async (req, res, next) => {
   const errors = validationResult(req);
   if(!errors.isEmpty()) return next(errorMessage(422, "Invalid Data", errors.array()));
 
-  const user = req.user;
+  const user = req.authUser;
   user.password = req.body.password;
   await user.save();
   delete user.password;
@@ -81,10 +81,10 @@ export const updatePassword = catchErrors(async (req, res, next) => {
 
 export const updateRole = catchErrors(async (req, res, next) => {
   const errors = validationResult(req);
-  if(!errors.isEmpty()) return next(errorMessage(422, "Invalid Id", errors.array()));
+  if (!errors.isEmpty()) return next(errorMessage(422, "Invalid Data", errors.array()));
 
-  const user = req.wantedUser;
-  if (user.role === "admin") return next(errorMessage(403, "You can't change admin role"));
+  const user = req.user;
+  if (user.role === "admin") return next(errorMessage(403, "Access Denied"));
   else if (user.role === "user") user.role = "moderator";
   else user.role = "user";
   await user.save();
@@ -101,7 +101,7 @@ export const requestUpdateEmail = catchErrors(async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return next(errorMessage(422, "Invalid Data", errors.array()));
   
-  const user = req.user;
+  const user = req.authUser;
   const email = req.body.email;
   const code = generateRandomCode(8);
   const to = email;
@@ -125,7 +125,7 @@ export const verifyNewEmail = catchErrors(async (req, res, next) => {
   const errors = validationResult(req);
   if(!errors.isEmpty()) return next(errorMessage(422, "Invalid Data", errors.array()));
 
-  const user = req.user;
+  const user = req.authUser;
   user.email = user.newEmail;
   user.newEmail = undefined;
   user.emailVerificationCode = undefined;
@@ -140,7 +140,7 @@ export const verifyNewEmail = catchErrors(async (req, res, next) => {
 
 
 export const deleteUser = catchErrors(async (req, res, next) => {
-  const user = req.wantedUser;
+  const user = req.user;
   await user.deleteOne();
   const response: OKResponse = {
     message: "Success",

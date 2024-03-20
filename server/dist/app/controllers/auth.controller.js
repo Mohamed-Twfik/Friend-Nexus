@@ -33,7 +33,7 @@ exports.signin = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0
     if (!user.verified)
         return next((0, errorMessage_1.default)(401, "Email Not Verified"));
     const userDevicesCount = yield token_model_1.default.find({ user: user._id }).countDocuments();
-    if (userDevicesCount >= parseInt(process.env.MAX_DEVICES_ALLOWED))
+    if (userDevicesCount >= +process.env.MAX_DEVICES_ALLOWED)
         return next((0, errorMessage_1.default)(401, `Maximum ${process.env.MAX_DEVICES_ALLOWED} devices are allowed`));
     const clientData = detector.parse(req.header("user-agent"));
     const token = jsonwebtoken_1.default.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
@@ -118,8 +118,8 @@ exports.newPassword = (0, catchErrors_1.default)((req, res, next) => __awaiter(v
     return res.status(202).json(response);
 }));
 exports.signout = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = req.user;
-    const token = req.token;
+    const user = req.authUser;
+    const token = req.authToken;
     yield token_model_1.default.findOneAndDelete({ token: token, user: user._id });
     const response = { message: "Signout Success" };
     res.status(200).json(response);

@@ -18,8 +18,9 @@ const catchErrors_1 = __importDefault(require("../utils/catchErrors"));
 const apiFeatures_1 = __importDefault(require("../utils/apiFeatures"));
 const express_validator_1 = require("express-validator");
 const errorMessage_1 = __importDefault(require("../utils/errorMessage"));
+const chat_model_1 = __importDefault(require("../models/chat.model"));
 exports.getFriendList = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = req.user;
+    const user = req.authUser;
     const search = req.query.search + "" || "";
     const queryString = {
         page: req.query.page,
@@ -66,14 +67,19 @@ exports.getFriendList = (0, catchErrors_1.default)((req, res, next) => __awaiter
                 return user1;
         }
     });
+    const total = friendList.length;
     const response = {
         message: "Success",
-        data: friendList,
+        data: {
+            result: friendList,
+            total,
+        },
     };
     res.status(200).json(response);
 }));
 exports.getFriendRequestList = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = req.user;
+    const user = req.authUser;
+    const search = req.query.search + "" || "";
     const queryString = {
         page: req.query.page,
         pageSize: req.query.pageSize,
@@ -88,15 +94,28 @@ exports.getFriendRequestList = (0, catchErrors_1.default)((req, res, next) => __
         .paginate()
         .sort();
     const friendShips = yield apiFeature.get();
-    const friendRequestList = friendShips.map((friendShip) => friendShip.user1);
+    const friendRequestList = friendShips.map((friendShip) => {
+        const regex = new RegExp(search, "i");
+        const user1 = friendShip.user1;
+        if (req.query.search) {
+            if ((regex.test(user1.fname) || regex.test(user1.lname) || regex.test(user1.email)))
+                return user1;
+        }
+        else
+            return user1;
+    });
+    const total = friendRequestList.length;
     const response = {
         message: "Success",
-        data: friendRequestList,
+        data: {
+            result: friendRequestList,
+            total,
+        },
     };
     res.status(200).json(response);
 }));
 exports.getFriendSendList = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = req.user;
+    const user = req.authUser;
     const search = req.query.search + "" || "";
     const queryString = {
         page: req.query.page,
@@ -113,10 +132,23 @@ exports.getFriendSendList = (0, catchErrors_1.default)((req, res, next) => __awa
         .sort();
     const friendShips = yield apiFeature.get();
     console.log(friendShips);
-    const friendSendList = friendShips.map((friendShip) => friendShip.user2);
+    const friendSendList = friendShips.map((friendShip) => {
+        const regex = new RegExp(search, "i");
+        const user2 = friendShip.user2;
+        if (req.query.search) {
+            if ((regex.test(user2.fname) || regex.test(user2.lname) || regex.test(user2.email)))
+                return user2;
+        }
+        else
+            return user2;
+    });
+    const total = friendSendList.length;
     const response = {
         message: "Success",
-        data: friendSendList,
+        data: {
+            result: friendSendList,
+            total,
+        },
     };
     res.status(200).json(response);
 }));
@@ -124,8 +156,8 @@ exports.sendFriendRequest = (0, catchErrors_1.default)((req, res, next) => __awa
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty())
         return next((0, errorMessage_1.default)(422, "Invalid Data", errors.array()));
-    const user = req.user;
-    const friend = req.wantedUser;
+    const user = req.authUser;
+    const friend = req.user;
     const friendShipData = {
         user1: user._id,
         user2: friend._id,
@@ -143,6 +175,10 @@ exports.acceptFriendRequest = (0, catchErrors_1.default)((req, res, next) => __a
     const friendShip = req.friendShip;
     friendShip.status = "accepted";
     yield friendShip.save();
+    const chatData = {
+        friendShip: friendShip._id
+    };
+    const chat = yield chat_model_1.default.create(chatData);
     const response = {
         message: "Success",
     };

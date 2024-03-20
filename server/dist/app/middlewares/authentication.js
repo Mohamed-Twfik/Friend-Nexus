@@ -37,7 +37,7 @@ exports.default = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 
         if (changePasswordDate > iat)
             return next((0, errorMessage_1.default)(401, "Password Changed"));
     }
-    req.user = user;
-    req.token = token;
+    req.authUser = user;
+    req.authToken = token;
     next();
 }));

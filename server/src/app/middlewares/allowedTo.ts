@@ -6,7 +6,7 @@ import CustomRequest from "../types/customRequest";
 const allowedTo = (...roles: string[]) => {
   if (roles.length === 0) roles = ["admin", "moderator", "user"];
   return catchError(async (req: CustomRequest, res: Response, next: NextFunction) => {
-    if(!roles.includes(req.user.role)) return next(errorMessage(401, `Not Authorized To Access This Route You Are ${req.user?.role}`));
+    if(!roles.includes(req.authUser.role)) return next(errorMessage(401, `Not Authorized To Access This Route You Are ${req.authUser?.role}`));
     next();
   });
 };

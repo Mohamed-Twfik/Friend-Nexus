@@ -7,7 +7,6 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const chatSchema = new mongoose_1.default.Schema({
     name: {
         type: String,
-        required: true,
     },
     description: {
         type: String,
@@ -18,12 +17,22 @@ const chatSchema = new mongoose_1.default.Schema({
     type: {
         type: String,
         enum: ["group", "private"],
+        default: "private",
         required: true,
+    },
+    access: {
+        type: String,
+        enum: ["public", "private"],
+        default: "private",
     },
     admin: {
         type: mongoose_1.default.Schema.Types.ObjectId,
         ref: "User",
-        required: true,
+        index: true
+    },
+    friendShip: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "FriendShip",
         index: true
     },
 }, { timestamps: true });

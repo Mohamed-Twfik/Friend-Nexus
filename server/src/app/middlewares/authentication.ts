@@ -28,7 +28,7 @@ export default catchError(async (req: CustomRequest, res: Response, next: NextFu
       return next(errorMessage(401, "Password Changed"));
   }
 
-  req.user = user;
-  req.token = token;
+  req.authUser = user;
+  req.authToken = token;
   next();
 });

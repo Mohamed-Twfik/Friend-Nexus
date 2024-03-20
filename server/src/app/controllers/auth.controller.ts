@@ -24,7 +24,7 @@ export const signin = catchErrors(async (req, res, next) => {
   const user = req.user;
   if (!user.verified) return next(errorMessage(401, "Email Not Verified"));
   const userDevicesCount = await tokenModel.find({ user: user._id }).countDocuments();
-  if (userDevicesCount >= parseInt(process.env.MAX_DEVICES_ALLOWED as string)) return next(errorMessage(401, `Maximum ${process.env.MAX_DEVICES_ALLOWED} devices are allowed`));
+  if (userDevicesCount >= +(process.env.MAX_DEVICES_ALLOWED as string)) return next(errorMessage(401, `Maximum ${process.env.MAX_DEVICES_ALLOWED} devices are allowed`));
 
   const clientData = detector.parse(req.header("user-agent") as string);
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET as string, {expiresIn: "1h"});
@@ -125,8 +125,8 @@ export const newPassword = catchErrors(async (req, res, next) => {
 
 
 export const signout = catchErrors(async (req, res, next)=>{
-  const user = req.user;
-  const token = req.token;
+  const user = req.authUser;
+  const token = req.authToken;
   await tokenModel.findOneAndDelete({token: token, user: user._id});
   const response: OKResponse = { message: "Signout Success" };
   res.status(200).json(response);

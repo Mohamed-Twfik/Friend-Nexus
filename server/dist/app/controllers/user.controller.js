@@ -46,7 +46,7 @@ exports.getAllUsers = (0, catchErrors_1.default)((req, res, next) => __awaiter(v
     res.status(200).json(response);
 }));
 exports.getUser = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = req.wantedUser;
+    const user = req.user;
     const response = {
         message: "Success",
         data: user,
@@ -57,7 +57,7 @@ exports.updateUser = (0, catchErrors_1.default)((req, res, next) => __awaiter(vo
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty())
         return next((0, errorMessage_1.default)(422, "Invalid Data", errors.array()));
-    const user = req.user;
+    const user = req.authUser;
     user.fname = req.body.fname || user.fname;
     user.lname = req.body.lname || user.lname;
     yield user.save();
@@ -71,7 +71,7 @@ exports.updatePassword = (0, catchErrors_1.default)((req, res, next) => __awaite
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty())
         return next((0, errorMessage_1.default)(422, "Invalid Data", errors.array()));
-    const user = req.user;
+    const user = req.authUser;
     user.password = req.body.password;
     yield user.save();
     delete user.password;
@@ -84,10 +84,10 @@ exports.updatePassword = (0, catchErrors_1.default)((req, res, next) => __awaite
 exports.updateRole = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty())
-        return next((0, errorMessage_1.default)(422, "Invalid Id", errors.array()));
-    const user = req.wantedUser;
+        return next((0, errorMessage_1.default)(422, "Invalid Data", errors.array()));
+    const user = req.user;
     if (user.role === "admin")
-        return next((0, errorMessage_1.default)(403, "You can't change admin role"));
+        return next((0, errorMessage_1.default)(403, "Access Denied"));
     else if (user.role === "user")
         user.role = "moderator";
     else
@@ -103,7 +103,7 @@ exports.requestUpdateEmail = (0, catchErrors_1.default)((req, res, next) => __aw
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty())
         return next((0, errorMessage_1.default)(422, "Invalid Data", errors.array()));
-    const user = req.user;
+    const user = req.authUser;
     const email = req.body.email;
     const code = (0, generateRandomCode_1.default)(8);
     const to = email;
@@ -123,7 +123,7 @@ exports.verifyNewEmail = (0, catchErrors_1.default)((req, res, next) => __awaite
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty())
         return next((0, errorMessage_1.default)(422, "Invalid Data", errors.array()));
-    const user = req.user;
+    const user = req.authUser;
     user.email = user.newEmail;
     user.newEmail = undefined;
     user.emailVerificationCode = undefined;
@@ -135,7 +135,7 @@ exports.verifyNewEmail = (0, catchErrors_1.default)((req, res, next) => __awaite
     res.status(202).json(response);
 }));
 exports.deleteUser = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = req.wantedUser;
+    const user = req.user;
     yield user.deleteOne();
     const response = {
         message: "Success",
