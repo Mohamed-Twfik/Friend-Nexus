@@ -1,11 +1,11 @@
 import bcrypt from "bcrypt";
 import { body } from "express-validator";
-import userModel from "../models/user.model";
+import userModel from "../../models/user.model";
 import {
   emailValidator,
-  passwordValidator,
   fnameValidator,
   lnameValidator,
+  passwordValidator,
 } from "./shared.validator";
 
 const codeValidator = (key: string, message: string) => {

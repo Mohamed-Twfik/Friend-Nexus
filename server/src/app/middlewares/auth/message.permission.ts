@@ -1,10 +1,10 @@
 import { validationResult } from "express-validator";
-import catchErrors from "../utils/catchErrors";
-import errorMessage from "../utils/errorMessage";
-import chatUserModel from "../models/chatUser.model";
-import friendShipModel from "../models/friendShip.model";
-import chatModel from "../models/chat.model";
-import { IChatSchema } from "../types/chat.type";
+import chatModel from "../../models/chat.model";
+import chatUserModel from "../../models/chatUser.model";
+import friendShipModel from "../../models/friendShip.model";
+import { IChatSchema } from "../../types/chat.type";
+import catchErrors from "../../utils/catchErrors";
+import errorMessage from "../../utils/errorMessage";
 
 export const getAndAddChatMessagePermission = catchErrors(async (req, res, next) => {
   const errors = validationResult(req);

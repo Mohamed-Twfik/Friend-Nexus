@@ -1,7 +1,7 @@
-import { Request, NextFunction, Response } from "express";
-import catchError from "../utils/catchErrors";
-import errorMessage from "../utils/errorMessage";
-import CustomRequest from "../types/customRequest";
+import { NextFunction, Response } from "express";
+import CustomRequest from "../../types/customRequest";
+import catchError from "../../utils/catchErrors";
+import errorMessage from "../../utils/errorMessage";
 
 const allowedTo = (...roles: string[]) => {
   if (roles.length === 0) roles = ["admin", "moderator", "user"];

@@ -1,5 +1,5 @@
 import { body, param } from "express-validator";
-import userModel from "../models/user.model";
+import userModel from "../../models/user.model";
 
 export const emailValidator = (message: string, select: string | string[] | Record<string, number | boolean | object> = {}) => {
   return body("email")

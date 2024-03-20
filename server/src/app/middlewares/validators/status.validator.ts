@@ -1,5 +1,5 @@
 import { body } from "express-validator";
-import statusModel from "../models/status.model";
+import statusModel from "../../models/status.model";
 import {
   mongoIdValidator
 } from "./shared.validator";

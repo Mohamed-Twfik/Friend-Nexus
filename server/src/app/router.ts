@@ -5,17 +5,17 @@ import path from "path";
 import { ErrorResponse } from "./types/response";
 import errorMessage from "./utils/errorMessage";
 // import swagger from '../swagger';
-import authentication from "./middlewares/authentication";
-import tokenModel from "./models/token.model";
+import authentication from "./middlewares/auth/authentication";
 import statusModel from "./models/status.model";
+import tokenModel from "./models/token.model";
 
 import authRouter from "./routes/auth.router";
-import userRouter from "./routes/user.router";
-import friendRouter from "./routes/friendShip.router";
-import tokenRouter from "./routes/token.router";
-import statusRouter from "./routes/status.router";
 import chatRouter from "./routes/chat.router";
+import friendRouter from "./routes/friendShip.router";
 import messageRouter from "./routes/message.router";
+import statusRouter from "./routes/status.router";
+import tokenRouter from "./routes/token.router";
+import userRouter from "./routes/user.router";
 
 export default (app: Application)=>{
 

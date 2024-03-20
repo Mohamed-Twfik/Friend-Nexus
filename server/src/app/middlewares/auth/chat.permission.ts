@@ -1,7 +1,7 @@
-import catchErrors from "../utils/catchErrors";
-import chatUserModel from "../models/chatUser.model";
-import errorMessage from "../utils/errorMessage";
-import { validationResult } from "express-validator"
+import { validationResult } from "express-validator";
+import chatUserModel from "../../models/chatUser.model";
+import catchErrors from "../../utils/catchErrors";
+import errorMessage from "../../utils/errorMessage";
 
 export const checkChatMember = (userType: string) => {
   return catchErrors(async (req, res, next) => {

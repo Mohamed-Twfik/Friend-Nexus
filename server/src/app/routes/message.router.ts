@@ -1,23 +1,23 @@
 import express from "express";
 import {
-  getChatMessages,
   createMessage,
-  updateMessage,
-  deleteMessage
+  deleteMessage,
+  getChatMessages,
+  updateMessage
 } from "../controllers/message.controller";
-import {
-  messageIdValidator,
-  createMessageValidator,
-  updateMessageValidator
-} from "../middlewares/message.validator";
 import {
   checkMessageOwner,
   deleteMessagePermission,
   getAndAddChatMessagePermission
-} from "../middlewares/message.permission";
+} from "../middlewares/auth/message.permission";
 import {
   chatIdValidator
-} from "../middlewares/chat.validator";
+} from "../middlewares/validators/chat.validator";
+import {
+  createMessageValidator,
+  messageIdValidator,
+  updateMessageValidator
+} from "../middlewares/validators/message.validator";
 
 
 const router = express.Router();

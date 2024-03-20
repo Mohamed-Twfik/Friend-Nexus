@@ -1,15 +1,15 @@
 import express from "express";
 import {
-  getUserTokens,
-  getOneToken,
   deleteToken,
+  getOneToken,
+  getUserTokens,
 } from "../controllers/token.controller";
 import {
-  tokenIdValidator
-} from "../middlewares/token.validator";
-import {
   checkTokenOwner
-} from "../middlewares/token.permission";
+} from "../middlewares/auth/token.permission";
+import {
+  tokenIdValidator
+} from "../middlewares/validators/token.validator";
 
 const router = express.Router();
 

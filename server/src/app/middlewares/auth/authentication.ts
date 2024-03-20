@@ -1,11 +1,11 @@
 import dotenv from "dotenv";
 import { NextFunction, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import tokenModel from "../models/token.model";
-import userModel from "../models/user.model";
-import CustomRequest from "../types/customRequest";
-import catchError from "../utils/catchErrors";
-import errorMessage from "../utils/errorMessage";
+import tokenModel from "../../models/token.model";
+import userModel from "../../models/user.model";
+import CustomRequest from "../../types/customRequest";
+import catchError from "../../utils/catchErrors";
+import errorMessage from "../../utils/errorMessage";
 
 dotenv.config();
 

@@ -1,9 +1,9 @@
 import { body } from 'express-validator';
-import chatModel from '../models/chat.model';
+import chatModel from '../../models/chat.model';
+import userModel from '../../models/user.model';
 import {
   mongoIdValidator,
 } from './shared.validator';
-import userModel from '../models/user.model';
 
 const nameValidator = () => {
   return body('name')

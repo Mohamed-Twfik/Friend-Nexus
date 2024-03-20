@@ -1,12 +1,12 @@
 import bcrypt from "bcrypt";
-import userModel from "../models/user.model";
+import { body } from "express-validator";
+import userModel from "../../models/user.model";
 import {
   fnameValidator,
   lnameValidator,
-  passwordValidator,
-  mongoIdValidator
+  mongoIdValidator,
+  passwordValidator
 } from "./shared.validator";
-import { body } from "express-validator";
 
 export const userIdValidator = () => {
   return mongoIdValidator("user", userModel);

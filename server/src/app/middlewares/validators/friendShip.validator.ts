@@ -1,5 +1,5 @@
-import friendShipModel from "../models/friendShip.model";
-import userModel from "../models/user.model";
+import friendShipModel from "../../models/friendShip.model";
+import userModel from "../../models/user.model";
 import { mongoIdValidator } from "./shared.validator";
 
 export const friendShipValidator = () => {

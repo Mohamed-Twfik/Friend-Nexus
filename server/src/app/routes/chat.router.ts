@@ -1,28 +1,28 @@
 import express from "express";
 import {
+  addChatUser,
+  createChat,
+  deleteChat,
+  getChatUsers,
+  getOneChat,
+  getUserChats,
+  leaveChat,
+  removeChatUser,
+  updateChat,
+  updateChatUserRole,
+} from "../controllers/chat.controller";
+import {
+  checkChatAccess,
+  checkChatAdmin,
+  checkChatMember,
+  checkChatModerator,
+} from "../middlewares/auth/chat.permission";
+import {
   chatIdValidator,
   createChatValidator,
   updateChatValidator,
   userIdAndChatIdValidator
-} from "../middlewares/chat.validator";
-import {
-  checkChatMember,
-  checkChatModerator,
-  checkChatAdmin,
-  checkChatAccess,
-} from "../middlewares/chat.permission";
-import {
-  getUserChats,
-  getOneChat,
-  createChat,
-  updateChat,
-  deleteChat,
-  getChatUsers,
-  addChatUser,
-  updateChatUserRole,
-  removeChatUser,
-  leaveChat,
-} from "../controllers/chat.controller";
+} from "../middlewares/validators/chat.validator";
 
 const router = express.Router();
 

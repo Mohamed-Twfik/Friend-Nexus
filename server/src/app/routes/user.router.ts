@@ -3,23 +3,23 @@ import {
   deleteUser,
   getAllUsers,
   getUser,
-  updatePassword,
-  verifyNewEmail,
   requestUpdateEmail,
+  updatePassword,
   updateRole,
   updateUser,
+  verifyNewEmail,
 } from "../controllers/user.controller";
 import {
   deleteUserPermission,
   getOneUserPermission
-} from "../middlewares/user.permission";
+} from "../middlewares/auth/user.permission";
 import {
+  requestUpdateEmailValidator,
   updatePasswordValidator,
   updateUserValidator,
-  requestUpdateEmailValidator,
-  verifyNewEmailValidator,
-  userIdValidator
-} from "../middlewares/user.validator";
+  userIdValidator,
+  verifyNewEmailValidator
+} from "../middlewares/validators/user.validator";
 
 const router = express.Router();
 

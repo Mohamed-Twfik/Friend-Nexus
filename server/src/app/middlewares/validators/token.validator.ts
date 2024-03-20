@@ -1,4 +1,4 @@
-import tokenModel from "../models/token.model";
+import tokenModel from "../../models/token.model";
 import { mongoIdValidator } from "./shared.validator";
 
 export const tokenIdValidator = () => {

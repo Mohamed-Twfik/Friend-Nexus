@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
-import catchErrors from "../utils/catchErrors";
-import errorMessage from "../utils/errorMessage";
-import friendShipModel from "../models/friendShip.model";
+import friendShipModel from "../../models/friendShip.model";
+import catchErrors from "../../utils/catchErrors";
+import errorMessage from "../../utils/errorMessage";
 
 export const getOneStatusPermission = catchErrors(async (req, res, next) => {
   const errors = validationResult(req);

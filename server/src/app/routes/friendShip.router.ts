@@ -1,16 +1,16 @@
 import express from "express";
 import {
-  friendShipValidator,
-  sendFriendRequestValidator
-} from "../middlewares/friendShip.validator";
-import {
+  acceptFriendRequest,
+  deleteOrRejectFriend,
   getFriendList,
   getFriendRequestList,
   getFriendSendList,
-  sendFriendRequest,
-  acceptFriendRequest,
-  deleteOrRejectFriend
+  sendFriendRequest
 } from "../controllers/friendShip.controller";
+import {
+  friendShipValidator,
+  sendFriendRequestValidator
+} from "../middlewares/validators/friendShip.validator";
 
 const router = express.Router();
 

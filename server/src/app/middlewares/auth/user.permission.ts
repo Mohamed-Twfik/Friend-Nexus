@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
-import friendShipModel from "../models/friendShip.model";
-import catchErrors from "../utils/catchErrors";
-import errorMessage from "../utils/errorMessage";
+import friendShipModel from "../../models/friendShip.model";
+import catchErrors from "../../utils/catchErrors";
+import errorMessage from "../../utils/errorMessage";
 
 export const deleteUserPermission = catchErrors(async (req, res, next) => {
   const errors = validationResult(req);

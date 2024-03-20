@@ -1,19 +1,19 @@
 import express from "express";
 import {
-  getUserStatusList,
-  getFriendsStatusList,
-  getOneStatus,
   createStatus,
   deleteStatus,
+  getFriendsStatusList,
+  getOneStatus,
+  getUserStatusList,
 } from "../controllers/status.controller";
 import {
-  statusIdValidator,
-  createStatusValidator
-} from "../middlewares/status.validator";
+  deleteStatusPermission,
+  getOneStatusPermission
+} from "../middlewares/auth/status.permission";
 import {
-  getOneStatusPermission,
-  deleteStatusPermission
-} from "../middlewares/status.permission";
+  createStatusValidator,
+  statusIdValidator
+} from "../middlewares/validators/status.validator";
 
 const router = express.Router();
 

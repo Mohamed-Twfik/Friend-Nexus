@@ -7,14 +7,14 @@ import {
   signup,
   verifyEmail
 } from "../controllers/auth.controller";
+import authentication from "../middlewares/auth/authentication";
 import {
   newPasswordValidator,
   resetPasswordValidator,
   signinValidator,
   signupValidator,
   verifyEmailValidator
-} from "../middlewares/auth.validator";
-import authentication from "../middlewares/authentication";
+} from "../middlewares/validators/auth.validator";
 
 const router = express.Router();
 
