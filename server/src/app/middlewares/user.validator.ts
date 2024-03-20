@@ -9,9 +9,7 @@ import {
 import { body } from "express-validator";
 
 export const userIdValidator = () => {
-  return [
-    mongoIdValidator("user", userModel),
-  ];
+  return mongoIdValidator("user", userModel);
 };
 
 export const updateUserValidator = () => {
@@ -39,30 +37,26 @@ export const updatePasswordValidator = () => {
 };
 
 export const requestUpdateEmailValidator = () => {
-  return [
-    body("email")
-      .trim()
-      .isEmail().withMessage("Invalid Email")
-      .normalizeEmail()
-      .custom(async (value, { req }) => {
-        const user = await userModel.findOne({ email: value });
-        if (user) throw new Error("Email Already Exists");
-      }),
-  ];
+  return body("email")
+    .trim()
+    .isEmail().withMessage("Invalid Email")
+    .normalizeEmail()
+    .custom(async (value, { req }) => {
+      const user = await userModel.findOne({ email: value });
+      if (user) throw new Error("Email Already Exists");
+    });
 };
 
 export const verifyNewEmailValidator = () => {
-  return [
-    body("code")
-      .trim()
-      .isLength({ min: 8 }).withMessage("Invalid Code")
-      .custom(async (value, { req }) => {
-        const user = req.authUser;
-        if (!user.newEmail) throw new Error("Please request to update email first");
+  return body("code")
+    .trim()
+    .isLength({ min: 8 }).withMessage("Invalid Code")
+    .custom(async (value, { req }) => {
+      const user = req.authUser;
+      if (!user.newEmail) throw new Error("Please request to update email first");
 
-        else if (user.emailVerificationCode.code !== value) throw new Error("Invalid Code");
+      else if (user.emailVerificationCode.code !== value) throw new Error("Invalid Code");
 
-        else if (user.emailVerificationCode.expireAt < new Date()) throw new Error("Code Expired");
-      })
-  ];
+      else if (user.emailVerificationCode.expireAt < new Date()) throw new Error("Code Expired");
+    })
 };

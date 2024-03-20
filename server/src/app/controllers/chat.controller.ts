@@ -7,7 +7,6 @@ import { validationResult } from "express-validator";
 import errorMessage from "../utils/errorMessage";
 import ApiFeatures from "../utils/apiFeatures";
 import { IFriendShipSchema } from "../types/friendShip.type";
-import friendShipModel from "../models/friendShip.model";
 import userModel from "../models/user.model";
 import { IUserSchema } from "../types/user.type";
 
@@ -23,6 +22,7 @@ export const getUserChats = catchErrors(async (req, res, next) => {
     .paginate()
     .sort();
   const userChats = await apiFeatures.get();
+
   const chats = userChats.map(async (userChat: IChatUser) => {
     if ((userChat.chat as IChatSchema).type === "private") {
       const friendShip = (userChat.chat as IChatSchema).friendShip;
@@ -34,6 +34,7 @@ export const getUserChats = catchErrors(async (req, res, next) => {
       };
       (userChat.chat as IChatSchema).name = `${friend.fname} ${friend.lname}`;
       (userChat.chat as IChatSchema).logo = `${friend.logo}`;
+      delete (userChat.chat as IChatSchema).friendShip;
     };
     return userChat.chat
   });
@@ -51,6 +52,19 @@ export const getUserChats = catchErrors(async (req, res, next) => {
 
 export const getOneChat = catchErrors(async (req, res, next) => {
   const chat = req.chat;
+  const user = req.authUser;
+  if (chat.type === "private") {
+    const friendShip = req.friendShip;
+    let friend = {} as IUserSchema;
+    if (friendShip.user1.toString() === user._id.toString()) {
+      friend = await userModel.findById(friendShip.user2) as IUserSchema;
+    }else if (friendShip.user2.toString() === user._id.toString()) {
+      friend = await userModel.findById(friendShip.user1) as IUserSchema;
+    };
+    chat.name = `${friend.fname} ${friend.lname}`;
+    chat.logo = `${friend.logo}`;
+    delete chat.friendShip;
+  }
 
   const response: OKResponse = {
     message: "Success",

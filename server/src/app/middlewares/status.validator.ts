@@ -1,13 +1,11 @@
-import { param, body } from "express-validator";
+import { body } from "express-validator";
 import statusModel from "../models/status.model";
 import {
   mongoIdValidator
 } from "./shared.validator";
 
 export const statusIdValidator = () => {
-  return [
-    mongoIdValidator("status", statusModel)
-  ];
+  return mongoIdValidator("status", statusModel)
 };
 
 

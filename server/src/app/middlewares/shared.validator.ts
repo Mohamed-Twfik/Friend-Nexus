@@ -36,20 +36,6 @@ export const lnameValidator = () => {
     .escape();
 };
 
-export const codeValidator = (key: string, message: string) => {
-  return body("code")
-    .trim()
-    .isLength({ min: 8 }).withMessage(message)
-    .custom(async (value, { req }) => {
-      const user = req.user;
-      if (!user[key]) throw new Error("Code Not Found");
-
-      else if (user[key].code !== value) throw new Error(message);
-
-      else if (new Date(user[key].expireAt).getTime() < new Date().getTime()) throw new Error("Code Expired");
-    });
-};
-
 export const mongoIdValidator = (key: string, model: any) => {
   return param(`${key}Id`)
     .isMongoId()

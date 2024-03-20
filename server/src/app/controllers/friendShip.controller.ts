@@ -10,6 +10,7 @@ import { IFriendShipSchema, IFriendShip } from "../types/friendShip.type";
 import { IUserSchema } from "../types/user.type";
 import { IChatPrivate, IChatUser } from "../types/chat.type";
 import chatModel from "../models/chat.model";
+import chatUserModel from "../models/chatUser.model";
 
 export const getFriendList = catchErrors(async (req: CustomRequest, res: Response, next: NextFunction) => {
   const user = req.authUser;
@@ -181,6 +182,18 @@ export const acceptFriendRequest = catchErrors(async (req: CustomRequest, res: R
     friendShip: friendShip._id
   };
   const chat = await chatModel.create(chatData);
+  const chatUser1: IChatUser = {
+    chat: chat._id,
+    user: friendShip.user1,
+    userRole: "user",
+  };
+  const chatUser2: IChatUser = {
+    chat: chat._id,
+    user: friendShip.user2,
+    userRole: "user",
+  };
+  await chatUserModel.create(chatUser1);
+  await chatUserModel.create(chatUser2);
 
   const response: OKResponse = {
     message: "Success",

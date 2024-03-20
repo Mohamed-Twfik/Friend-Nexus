@@ -9,7 +9,7 @@ import {
   checkChatMember,
   checkChatModerator,
   checkChatAdmin,
-  checkChatAccess
+  checkChatAccess,
 } from "../middlewares/chat.permission";
 import {
   getUserChats,
@@ -38,7 +38,5 @@ router.post("/users/join/:chatId", chatIdValidator(), checkChatAccess, addChatUs
 router.patch("/users/role/:userId/:chatId", userIdAndChatIdValidator(), checkChatAdmin, checkChatMember("user"), updateChatUserRole);
 router.delete("/users/remove/:userId/:chatId", userIdAndChatIdValidator(), checkChatModerator, checkChatMember("user"), removeChatUser);
 router.delete("/users/leave/:chatId", chatIdValidator(), checkChatMember("authUser"), leaveChat);
-
-// router.get("/messages/list/:chatId", chatIdValidator(), checkChatMember("authUser"), );
 
 export default router;

@@ -25,9 +25,7 @@ const descriptionValidator = () => {
 };
 
 export const chatIdValidator = () => {
-  return [
-    mongoIdValidator('chat', chatModel),
-  ]
+  return mongoIdValidator('chat', chatModel)
 };
 
 export const createChatValidator = () => {
@@ -40,7 +38,7 @@ export const createChatValidator = () => {
 
 export const updateChatValidator = () => {
   return [
-    ...chatIdValidator(),
+    chatIdValidator(),
 
     nameValidator().optional(),
     
@@ -50,7 +48,7 @@ export const updateChatValidator = () => {
 
 export const userIdAndChatIdValidator = () => {
   return [
-    ...chatIdValidator(),
+    chatIdValidator(),
 
     mongoIdValidator('user', userModel),
   ];

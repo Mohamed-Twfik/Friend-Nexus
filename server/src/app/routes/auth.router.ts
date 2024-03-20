@@ -1,6 +1,19 @@
 import express from "express";
-import { newPassword, resetPassword, signin, signout, signup, verifyEmail } from "../controllers/auth.controller";
-import { newPasswordValidator, resetPasswordValidator, signinValidator, signupValidator, verifyEmailValidator } from "../middlewares/auth.validator";
+import {
+  newPassword,
+  resetPassword,
+  signin,
+  signout,
+  signup,
+  verifyEmail
+} from "../controllers/auth.controller";
+import {
+  newPasswordValidator,
+  resetPasswordValidator,
+  signinValidator,
+  signupValidator,
+  verifyEmailValidator
+} from "../middlewares/auth.validator";
 import authentication from "../middlewares/authentication";
 
 const router = express.Router();

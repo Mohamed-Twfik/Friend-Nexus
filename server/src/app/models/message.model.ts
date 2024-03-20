@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
+import { IMessageSchema } from "../types/message.type";
 
-const messageSchema = new mongoose.Schema({
+const messageSchema = new mongoose.Schema<IMessageSchema>({
     content: {
       type: String,
-      required: true
     },
     files: {
       type: [String],
@@ -24,4 +24,4 @@ const messageSchema = new mongoose.Schema({
   { timestamps: true }
 );
 
-export default mongoose.model("Message", messageSchema);
+export default mongoose.model<IMessageSchema>("Message", messageSchema);
