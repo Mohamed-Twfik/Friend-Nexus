@@ -1,5 +1,6 @@
-import mongoose from "mongoose";
+import mongoose, { Query } from "mongoose";
 import { IFriendShipSchema } from "../types/friendShip.type";
+import chatModel from "./chat.model";
 
 const friendShipSchema = new mongoose.Schema<IFriendShipSchema>({
     status: {
@@ -22,5 +23,9 @@ const friendShipSchema = new mongoose.Schema<IFriendShipSchema>({
   },
   { timestamps: true }
 );
+
+friendShipSchema.post("findOneAndDelete", async function (doc) {
+  await chatModel.deleteMany({ friendShip: doc._id });
+});
 
 export default mongoose.model<IFriendShipSchema>("FriendShip", friendShipSchema);

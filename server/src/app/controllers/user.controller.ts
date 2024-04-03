@@ -141,7 +141,8 @@ export const verifyNewEmail = catchErrors(async (req, res, next) => {
 
 export const deleteUser = catchErrors(async (req, res, next) => {
   const user = req.user;
-  await user.deleteOne();
+  await userModel.findOneAndDelete({_id: user._id});
+
   const response: OKResponse = {
     message: "Success",
   };

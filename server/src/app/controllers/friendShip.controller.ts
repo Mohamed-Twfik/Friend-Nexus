@@ -207,7 +207,7 @@ export const deleteOrRejectFriend = catchErrors(async (req: CustomRequest, res: 
   if (!errors.isEmpty()) return next(errorMessage(422, "Invalid Data", errors.array()));
   
   const friendShip = req.friendShip;
-  await friendShip.deleteOne();
+  await friendShipModel.findOneAndDelete({ _id: friendShip._id });
 
   const response: OKResponse = {
     message: "Success",

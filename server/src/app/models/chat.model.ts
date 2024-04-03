@@ -1,5 +1,7 @@
-import mongoose from "mongoose";
+import mongoose, { Query, Document } from "mongoose";
 import { IChatSchema } from "../types/chat.type";
+import chatUserModel from "./chatUser.model";
+import messageModel from "./message.model";
 
 const chatSchema = new mongoose.Schema<IChatSchema>({
     name: {
@@ -30,10 +32,15 @@ const chatSchema = new mongoose.Schema<IChatSchema>({
     friendShip: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "FriendShip",
-      index: true
+      unique: true,
     },
   },
   { timestamps: true }
 );
+
+chatSchema.post("findOneAndDelete", async function (doc) {
+  await chatUserModel.deleteMany({ chat: doc._id });
+  await messageModel.deleteMany({ chat: doc._id });
+})
 
 export default mongoose.model<IChatSchema>("Chat", chatSchema);

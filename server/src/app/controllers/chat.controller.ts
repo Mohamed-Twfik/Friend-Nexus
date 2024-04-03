@@ -9,6 +9,7 @@ import ApiFeatures from "../utils/apiFeatures";
 import { IFriendShipSchema } from "../types/friendShip.type";
 import userModel from "../models/user.model";
 import { IUserSchema } from "../types/user.type";
+import chatModel from "../models/chat.model";
 
 export const getUserChats = catchErrors(async (req, res, next) => {
   const user = req.authUser;
@@ -197,8 +198,13 @@ export const leaveChat = catchErrors(async (req, res, next) => {
   const chatUser = req.chatUser;
   if (chatUser.userRole === "admin") {
     const firstChatUser = await chatUserModel.findOne({ chat: chat._id });
-    if(!firstChatUser) await chat.deleteOne();
-    else firstChatUser.userRole = "admin";
+    if(!firstChatUser) await chatModel.findOneAndDelete({ _id: chat._id });
+    else {
+      chat.admin = firstChatUser._id;
+      firstChatUser.userRole = "admin";
+      await chat.save();
+      await firstChatUser.save();
+    };
   };
   await chatUser.deleteOne();
 
