@@ -5,6 +5,7 @@ import ApiFeature from "../utils/apiFeatures";
 import catchErrors from "../utils/catchErrors";
 import errorMessage from "../utils/errorMessage";
 import fs from "fs";
+import path from "path";
 
 export const getChatMessages = catchErrors(async (req, res, next) => {
   const chat = req.chat;
@@ -65,7 +66,8 @@ export const updateMessage = catchErrors(async (req, res, next) => {
   if (files && files.length !== 0) {
     if (message.files && message.files.length !== 0) {
       message.files.forEach((file: string) => {
-        fs.unlink(`uploads/${file}`, (err) => {
+        const fileURL = path.join("uploads", file);
+        fs.unlink(fileURL, (err) => {
           if (err) console.log(err);
         });
       });
@@ -86,7 +88,8 @@ export const deleteMessage = catchErrors(async (req, res, next) => {
 
   if (message.files.length !== 0) {
     message.files.forEach((file: string) => {
-      fs.unlink(`uploads/${file}`, (err) => {
+      const fileURL = path.join("uploads", file);
+      fs.unlink(fileURL, (err) => {
         if (err) console.log(err);
       });
     });

@@ -1,5 +1,6 @@
 import { validationResult } from "express-validator";
 import fs from "fs";
+import path from "path";
 import userModel from "../models/user.model";
 import { OKResponse } from "../types/response";
 import ApiFeature from "../utils/apiFeatures";
@@ -55,7 +56,8 @@ export const updateUser = catchErrors(async (req, res, next) => {
 
   if (req.file) {
     if (user.logo) {
-      fs.unlink(`uploads/${user.logo}`, (err) => {
+      const fileURL = path.join('uploads', user.logo);
+      fs.unlink(fileURL, (err) => {
         if(err) console.log(err);
       });
     }
@@ -156,7 +158,8 @@ export const deleteUser = catchErrors(async (req, res, next) => {
   const user = req.user;
 
   if (user.logo) {
-    fs.unlink(`uploads/${user.logo}`, (err) => {
+    const fileURL = path.join("uploads", user.logo);
+    fs.unlink(fileURL, (err) => {
       if(err) console.log(err);
     });
   }
