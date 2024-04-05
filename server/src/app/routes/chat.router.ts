@@ -23,13 +23,14 @@ import {
   updateChatValidator,
   userIdAndChatIdValidator
 } from "../middlewares/validators/chat.validator";
+import uploadMW from "../middlewares/fileUpload";
 
 const router = express.Router();
 
 router.get("/list", getUserChats);
 router.get("/:chatId", chatIdValidator(), checkChatMember("authUser"), getOneChat);
-router.post("/new", createChatValidator(), createChat);
-router.patch("/:chatId", updateChatValidator(), checkChatModerator, updateChat);
+router.post("/new", uploadMW("image", "single", "logo"), createChatValidator(), createChat);
+router.patch("/:chatId", uploadMW("image", "single", "logo"), updateChatValidator(), checkChatModerator, updateChat);
 router.delete("/:chatId", chatIdValidator(), checkChatModerator, deleteChat);
 
 router.get("/users/list/:chatId", chatIdValidator(), checkChatMember("authUser"), getChatUsers);

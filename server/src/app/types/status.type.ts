@@ -3,7 +3,7 @@ import { IUserSchema } from "./user.type";
 
 export interface IStatus {
   file?: string;
-  content: string;
+  content?: string;
   expireAt?: Date;
   user: mongoose.Types.ObjectId | IUserSchema;
 }

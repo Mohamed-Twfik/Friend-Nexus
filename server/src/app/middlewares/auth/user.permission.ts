@@ -19,7 +19,7 @@ export const getOneUserPermission = catchErrors(async (req, res, next) => {
 
   const user = req.authUser;
   const wantedUser = req.user;
-  if (user.role === "admin" || user.role === "moderator") return next();
+  if (user.role === "admin" || user.role === "moderator" || user._id.toString() === wantedUser._id.toString()) return next();
   const friendship = await friendShipModel.findOne({
     $or: [
       { $and: [{ user1: user._id }, { user2: wantedUser._id }, { status: "accepted" }] },

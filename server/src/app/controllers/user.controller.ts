@@ -1,4 +1,5 @@
 import { validationResult } from "express-validator";
+import fs from "fs";
 import userModel from "../models/user.model";
 import { OKResponse } from "../types/response";
 import ApiFeature from "../utils/apiFeatures";
@@ -52,7 +53,17 @@ export const updateUser = catchErrors(async (req, res, next) => {
   user.fname = req.body.fname || user.fname;
   user.lname = req.body.lname || user.lname;
 
+  if (req.file) {
+    if (user.logo) {
+      fs.unlink(`uploads/${user.logo}`, (err) => {
+        if(err) console.log(err);
+      });
+    }
+    user.logo = req.file.filename;
+  }
+  
   await user.save();
+  user.password = undefined;
 
   const response: OKResponse = {
     message: "Success",
@@ -69,7 +80,7 @@ export const updatePassword = catchErrors(async (req, res, next) => {
   const user = req.authUser;
   user.password = req.body.password;
   await user.save();
-  delete user.password;
+  user.password = undefined;
 
   const response: OKResponse = {
     message: "Success",
@@ -88,6 +99,7 @@ export const updateRole = catchErrors(async (req, res, next) => {
   else if (user.role === "user") user.role = "moderator";
   else user.role = "user";
   await user.save();
+  user.password = undefined;
 
   const response: OKResponse = {
     message: "Success",
@@ -130,6 +142,7 @@ export const verifyNewEmail = catchErrors(async (req, res, next) => {
   user.newEmail = undefined;
   user.emailVerificationCode = undefined;
   await user.save();
+  user.password = undefined;
 
   const response: OKResponse = {
     message: "Success",
@@ -141,6 +154,13 @@ export const verifyNewEmail = catchErrors(async (req, res, next) => {
 
 export const deleteUser = catchErrors(async (req, res, next) => {
   const user = req.user;
+
+  if (user.logo) {
+    fs.unlink(`uploads/${user.logo}`, (err) => {
+      if(err) console.log(err);
+    });
+  }
+
   await userModel.findOneAndDelete({_id: user._id});
 
   const response: OKResponse = {
