@@ -7,6 +7,7 @@ import { IStatus } from "../types/status.type";
 import errorMessage from "../utils/errorMessage";
 import { validationResult } from "express-validator";
 import fs from "fs";
+import path from "path";
 
 export const getUserStatusList = catchErrors(async (req, res, next) => {
   const user = req.authUser;
@@ -126,7 +127,8 @@ export const deleteStatus = catchErrors(async (req, res, next) => {
   const status = req.status;
 
   if (status.file) {
-    fs.unlink(`uploads/${status.file}`, (err) => {
+    const fileURL = path.join("uploads", status.file);
+    fs.unlink(fileURL, (err) => {
       if(err) console.log(err);
     });
   }

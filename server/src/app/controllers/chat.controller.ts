@@ -10,6 +10,7 @@ import { IFriendShipSchema } from "../types/friendShip.type";
 import userModel from "../models/user.model";
 import { IUserSchema } from "../types/user.type";
 import fs from "fs";
+import path from "path";
 
 export const getUserChats = catchErrors(async (req, res, next) => {
   const user = req.authUser;
@@ -114,7 +115,8 @@ export const updateChat = catchErrors(async (req, res, next) => {
 
   if (req.file) {
     if (chat.logo) {
-      fs.unlink(`uploads/${chat.logo}`, (err) => {
+      const fileURL = path.join("uploads", chat.logo);
+      fs.unlink(fileURL, (err) => {
         if(err) console.log(err);
       });
     }
@@ -134,7 +136,8 @@ export const deleteChat = catchErrors(async (req, res, next) => {
   const chat = req.chat;
 
   if (chat.logo) {
-    fs.unlink(`uploads/${chat.logo}`, (err) => {
+    const fileURL = path.join("uploads", chat.logo);
+    fs.unlink(fileURL, (err) => {
       if(err) console.log(err);
     });
   }

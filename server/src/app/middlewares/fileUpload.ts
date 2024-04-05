@@ -25,7 +25,7 @@ const getUploadMW = (filter: "image" | "media" | "any", operation: "single" | "a
   };
   const mediaFilter = (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
     // Accept image and video files
-    if (file.mimetype.startsWith('image') || file.mimetype.startsWith('video')) {
+    if (file.mimetype.startsWith('image') || file.mimetype.startsWith('video') || file.mimetype.startsWith('audio')) {
       cb(null, true);
     } else {
       cb(new Error('Only image and video files are allowed!'));
