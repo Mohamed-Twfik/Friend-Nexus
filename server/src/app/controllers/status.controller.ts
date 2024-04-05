@@ -8,79 +8,40 @@ import errorMessage from "../utils/errorMessage";
 import { validationResult } from "express-validator";
 import fs from "fs";
 import path from "path";
+import { IQueryString } from "../types/apiFeature.type";
 
-export const getUserStatusList = catchErrors(async (req, res, next) => {
-  const user = req.authUser;
-  const queryString = {
-    page: req.query.page,
-    pageSize: req.query.pageSize,
-    sort: "-createdAt",
-    search: req.query.search,
-    fields: "-__v",
-  };
-  const apiFeatures = new ApiFeatures(statusModel.find({ user: user._id }), queryString)
-    .paginate()
-    .fields()
-    .search({
-      content: { $regex: queryString.search, $options: "i" }
-    })
-    .sort();
-  
-  const statuses = await apiFeatures.get();
-  const total = statuses.length;
+export const getUserStatusList = (to: "owner" | "friend") => {
+  return catchErrors(async (req, res, next) => {
+    const user = (to === "owner") ? req.authUser : req.user;
+    console.log(user)
+    const queryString: IQueryString = {
+      page: +(req.query.page as string),
+      pageSize: +(req.query.pageSize as string),
+      sort: "-createdAt",
+      search: req.query.search as string,
+      fields: "-__v",
+    };
+    const apiFeatures = new ApiFeatures(statusModel.find({ user: user._id }), queryString, { user: user._id })
+      .paginate()
+      .fields()
+      .search({
+        content: { $regex: queryString.search, $options: "i" }
+      })
+      .sort();
+    
+    const statuses = await apiFeatures.get();
+    const totalLength = await apiFeatures.getTotal();
 
-  const response: OKResponse = {
-    message: "Success",
-    data: {
-      statuses,
-      total
-    }
-  };
-  res.status(200).json(response);
-});
-
-
-export const getFriendsStatusList = catchErrors(async (req, res, next) => {
-  const user = req.authUser;
-  const queryString = {
-    page: req.query.page,
-    pageSize: req.query.pageSize,
-    sort: "-createdAt",
-    search: req.query.search,
-    fields: "-__v",
-  };
-
-  const userFriends = await friendShipModel.find({
-    $or: [
-      { user1: user._id, status: "accepted" },
-      { user2: user._id, status: "accepted" }
-    ]
+    const response: OKResponse = {
+      message: "Success",
+      data: {
+        statuses,
+        totalLength
+      }
+    };
+    res.status(200).json(response);
   });
-  const friends = userFriends.map(friendShip => {
-    if (friendShip.user1.toString() === user._id.toString()) return friendShip.user2;
-    return friendShip.user1;
-  });
-
-  const apiFeatures = new ApiFeatures(statusModel.find({ user: { $in: friends } }), queryString)
-    .paginate()
-    .fields()
-    .search({
-      content: { $regex: queryString.search, $options: "i" }
-    })
-    .sort();
-  
-  const statuses = await apiFeatures.get();
-  const total = statuses.length;
-
-  const response: OKResponse = {
-    message: "Success",
-    data: {
-      statuses,
-      total
-    }
-  };
-  res.status(200).json(response);
-});
+};
 
 
 export const getOneStatus = catchErrors(async (req, res, next) => {

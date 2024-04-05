@@ -1,27 +1,26 @@
 import mongoose from "mongoose";
+import {
+  IApiFeature,
+  IQueryString
+} from "../types/apiFeature.type";
 
-interface IApiFeature {
-  paginate(): IApiFeature;
-  filter(): IApiFeature;
-  sort(): IApiFeature;
-  search(conditions: object[]): IApiFeature;
-  fields(): IApiFeature;
-}
 export default class ApiFeature implements IApiFeature {
   mongooseQuery: mongoose.Query<any, any>;
   private queryString;
+  private queryCondition;
   private pageSize: number = 5;
   private page: number = 1;
   
-  constructor(mongooseQuery: mongoose.Query<any, any>, queryString: any) {
+  constructor(mongooseQuery: mongoose.Query<any, any>, queryString: IQueryString, queryCondition: object = {}) {
     this.mongooseQuery = mongooseQuery;
     this.queryString = queryString;
+    this.queryCondition = queryCondition;
   }
 
   //[1]to make pagination
   paginate() {
-    this.page = (!this.queryString.page || this.queryString.page <= 0)? this.page : +this.queryString.page;
-    this.pageSize = (!this.queryString.pageSize || this.queryString.pageSize <= 0)? this.pageSize : +this.queryString.pageSize;
+    this.page = (!this.queryString.page || this.queryString.page <= 0)? this.page : this.queryString.page;
+    this.pageSize = (!this.queryString.pageSize || this.queryString.pageSize <= 0)? this.pageSize : this.queryString.pageSize;
     let skip = (this.page - 1) * this.pageSize;
     this.mongooseQuery.skip(skip).limit(this.pageSize);
     return this;
@@ -41,6 +40,7 @@ export default class ApiFeature implements IApiFeature {
     );
     filterObjToStr = JSON.parse(filterObjToStr);
     this.mongooseQuery.find(filterObj);
+    this.queryCondition = {...this.queryCondition, ...filterObj};
     return this;
   }
 
@@ -57,6 +57,7 @@ export default class ApiFeature implements IApiFeature {
   search(conditions: object) {
     if (this.queryString.search) {
       this.mongooseQuery.find(conditions);
+      this.queryCondition = {...this.queryCondition, ...conditions};
     }
     return this;
   }
@@ -75,6 +76,10 @@ export default class ApiFeature implements IApiFeature {
     return await this.mongooseQuery;
   }
 
+  //[7] to get the total length
+  async getTotal() {
+    return await this.mongooseQuery.model.countDocuments(this.queryCondition);
+  }
 }
 
 // ex to use

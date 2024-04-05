@@ -2,6 +2,7 @@ import { validationResult } from "express-validator";
 import fs from "fs";
 import path from "path";
 import userModel from "../models/user.model";
+import { IQueryString } from "../types/apiFeature.type";
 import { OKResponse } from "../types/response";
 import ApiFeature from "../utils/apiFeatures";
 import catchErrors from "../utils/catchErrors";
@@ -10,26 +11,30 @@ import generateRandomCode from "../utils/generateRandomCode";
 import sendMails from "../utils/sendMails";
 
 export const getAllUsers = catchErrors(async (req, res, next) => {
-  req.query.fields = "-createdAt -updatedAt";
-  const apiFeature = new ApiFeature(userModel.find(), req.query)
-    .paginate()
-    .filter()
-    .fields()
-    .search({
-      $or: [
-        { fname: { $regex: req.query.search, $options: "i" } },
-        { lname: { $regex: req.query.search, $options: "i" } },
-        { email: { $regex: req.query.search, $options: "i" } },
-      ]
-    })
-    .sort();
-    const result = await apiFeature.get();
-    const total = result.length;
+  const queryString: IQueryString = {
+    page: +(req.query.page as string),
+    pageSize: +(req.query.pageSize as string),
+    sort: "-createdAt",
+    search: req.query.search as string,
+  };
+
+  const apiFeature = new ApiFeature(userModel.find(), queryString)
+  .paginate()
+  .search({
+    $or: [
+      { fname: { $regex: req.query.search, $options: "i" } },
+      { lname: { $regex: req.query.search, $options: "i" } },
+      { email: { $regex: req.query.search, $options: "i" } },
+    ]
+  })
+  .sort();
+  const result = await apiFeature.get();
+  const totalLength = await apiFeature.getTotal();
   const response: OKResponse = {
     message: "Success",
     data: {
       result,
-      total,
+      totalLength,
     },
   };
   res.status(200).json(response);

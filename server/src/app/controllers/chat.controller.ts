@@ -11,21 +11,21 @@ import userModel from "../models/user.model";
 import { IUserSchema } from "../types/user.type";
 import fs from "fs";
 import path from "path";
+import { IQueryString } from "../types/apiFeature.type";
 
 export const getUserChats = catchErrors(async (req, res, next) => {
   const user = req.authUser;
 
-  const queryString = {
-    page: req.query.page,
-    pageSize: req.query.pageSize,
+  const queryString: IQueryString = {
+    page: +(req.query.page as string),
+    pageSize: +(req.query.pageSize as string),
     sort: "-createdAt",
   };
-  const apiFeatures = new ApiFeatures(chatUserModel.find({ user: user._id }).populate("chat"), queryString)
+  const apiFeatures = new ApiFeatures(chatUserModel.find({ user: user._id }).populate("chat"), queryString, { user: user._id })
     .paginate()
     .sort();
   const userChats = await apiFeatures.get();
-
-  const chats = userChats.map(async (userChat: IChatUser) => {
+  const chats = await Promise.all(userChats.map(async (userChat: IChatUser) => {
     if ((userChat.chat as IChatSchema).type === "private") {
       const friendShip = (userChat.chat as IChatSchema).friendShip;
       let friend: IUserSchema = {} as IUserSchema;
@@ -37,16 +37,17 @@ export const getUserChats = catchErrors(async (req, res, next) => {
       (userChat.chat as IChatSchema).name = `${friend.fname} ${friend.lname}`;
       (userChat.chat as IChatSchema).logo = `${friend.logo}`;
       delete (userChat.chat as IChatSchema).friendShip;
+      await (userChat.chat as IChatSchema).save();
     };
     return userChat.chat
-  });
-  const total = userChats.length;
+  }));
+  const totalLength = await apiFeatures.getTotal();
 
   const response: OKResponse = {
     message: "Success",
     data: {
       result: chats,
-      total,
+      totalLength,
     },
   };
   res.status(200).json(response);
@@ -153,21 +154,21 @@ export const deleteChat = catchErrors(async (req, res, next) => {
 export const getChatUsers = catchErrors(async (req, res, next) => {
   const chat = req.chat;
 
-  const queryString = {
-    page: req.query.page,
-    pageSize: req.query.pageSize,
+  const queryString: IQueryString = {
+    page: +(req.query.page as string),
+    pageSize: +(req.query.pageSize as string),
   };
-  const apiFeatures = new ApiFeatures(chatUserModel.find({ chat: chat._id }).populate("user"), queryString)
+  const apiFeatures = new ApiFeatures(chatUserModel.find({ chat: chat._id }).populate("user"), queryString, { chat: chat._id })
     .paginate();
   const chatUsers = await apiFeatures.get();
   const users = chatUsers.map((chatUser: IChatUser) => chatUser.user);
-  const total = chatUsers.length;
+  const totalLength = await apiFeatures.getTotal();
 
   const response: OKResponse = {
     message: "Success",
     data: {
       result: users,
-      total,
+      totalLength,
     },
   };
   res.status(200).json(response);

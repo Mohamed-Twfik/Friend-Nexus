@@ -11,16 +11,17 @@ import { IUserSchema } from "../types/user.type";
 import { IChatPrivate, IChatUser } from "../types/chat.type";
 import chatModel from "../models/chat.model";
 import chatUserModel from "../models/chatUser.model";
+import { IQueryString } from "../types/apiFeature.type";
 
 export const getFriendList = catchErrors(async (req: CustomRequest, res: Response, next: NextFunction) => {
   const user = req.authUser;
-  const search = req.query.search+"" || "";
-  const queryString = {
-    page: req.query.page,
-    pageSize: req.query.pageSize,
-    sort: req.query.sort || "-createdAt",
+  const search = req.query.search as string;
+  const queryString: IQueryString = {
+    page: +(req.query.page as string),
+    pageSize: +(req.query.pageSize as string),
+    sort: req.query.sort as string || "-createdAt",
   };
-  const apiFeature = new ApiFeature(friendShipModel.find({
+  const condition = {
     $and: [
       { status: "accepted" },
       { $or: [
@@ -29,13 +30,16 @@ export const getFriendList = catchErrors(async (req: CustomRequest, res: Respons
         ]
       }
     ]
-  }).populate({
-    path: "user1",
-    select: "-password -changePasswordAt -__v"
-  }).populate({
-    path: "user2",
-    select: "-password -changePasswordAt -__v"
-  }), queryString)
+  }
+  const apiFeature = new ApiFeature(
+    friendShipModel.find(condition).populate({
+      path: "user1",
+      select: "-password -changePasswordAt -__v"
+    }).populate({
+      path: "user2",
+      select: "-password -changePasswordAt -__v"
+    }),
+    queryString, condition)
     .paginate()
     .sort();
   const friendShips = await apiFeature.get();
@@ -58,13 +62,13 @@ export const getFriendList = catchErrors(async (req: CustomRequest, res: Respons
     }
   });
 
-  const total = friendList.length;
+  const totalLength = await apiFeature.getTotal();
 
   const response: OKResponse = {
     message: "Success",
     data: {
       result: friendList,
-      total,
+      totalLength,
     },
   };
   res.status(200).json(response);
@@ -73,18 +77,19 @@ export const getFriendList = catchErrors(async (req: CustomRequest, res: Respons
 
 export const getFriendRequestList = catchErrors(async (req: CustomRequest, res: Response, next: NextFunction) => {
   const user = req.authUser;
-  const search = req.query.search+"" || "";
-  const queryString = {
-    page: req.query.page,
-    pageSize: req.query.pageSize,
-    sort: req.query.sort || "-createdAt",
+  const search = req.query.search as string;
+  const queryString: IQueryString = {
+    page: +(req.query.page as string),
+    pageSize: +(req.query.pageSize as string),
+    sort: req.query.sort as string || "-createdAt",
   };
-  const apiFeature = new ApiFeature(friendShipModel.find({
+  const condition = {
     $and: [
       { status: "pending" },
       { user2: user._id }
     ]
-  }).populate("user1"), queryString)
+  }
+  const apiFeature = new ApiFeature(friendShipModel.find(condition).populate("user1"), queryString, condition)
     .paginate()
     .sort();
   const friendShips = await apiFeature.get();
@@ -98,13 +103,13 @@ export const getFriendRequestList = catchErrors(async (req: CustomRequest, res: 
     else return user1;
   });
 
-  const total = friendRequestList.length;
+  const totalLength = await apiFeature.getTotal();
 
   const response: OKResponse = {
     message: "Success",
     data: {
       result: friendRequestList,
-      total,
+      totalLength,
     },
   };
   res.status(200).json(response);
@@ -113,22 +118,22 @@ export const getFriendRequestList = catchErrors(async (req: CustomRequest, res: 
 
 export const getFriendSendList = catchErrors(async (req: CustomRequest, res: Response, next: NextFunction) => {
   const user = req.authUser;
-  const search = req.query.search+"" || "";
-  const queryString = {
-    page: req.query.page,
-    pageSize: req.query.pageSize,
-    sort: req.query.sort || "-createdAt",
+  const search = req.query.search as string;
+  const queryString: IQueryString = {
+    page: +(req.query.page as string),
+    pageSize: +(req.query.pageSize as string),
+    sort: req.query.sort as string || "-createdAt",
   };
-  const apiFeature = new ApiFeature(friendShipModel.find({
+  const condition = {
     $and: [
       { status: "pending" },
       { user1: user._id }
     ]
-  }).populate("user2"), queryString)
+  }
+  const apiFeature = new ApiFeature(friendShipModel.find(condition).populate("user2"), queryString, condition)
     .paginate()
     .sort();
   const friendShips = await apiFeature.get();
-  console.log(friendShips);
 
   const friendSendList = friendShips.map((friendShip: IFriendShipSchema) => {
     const regex = new RegExp(search, "i");
@@ -139,13 +144,13 @@ export const getFriendSendList = catchErrors(async (req: CustomRequest, res: Res
     else return user2;
   });
 
-  const total = friendSendList.length;
+  const totalLength = await apiFeature.getTotal();
 
   const response: OKResponse = {
     message: "Success",
     data: {
       result: friendSendList,
-      total,
+      totalLength,
     },
   };
   res.status(200).json(response);

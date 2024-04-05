@@ -1,4 +1,5 @@
 import messageModel from "../models/message.model";
+import { IQueryString } from "../types/apiFeature.type";
 import { IMessage } from "../types/message.type";
 import { OKResponse } from "../types/response";
 import ApiFeature from "../utils/apiFeatures";
@@ -9,20 +10,20 @@ import path from "path";
 
 export const getChatMessages = catchErrors(async (req, res, next) => {
   const chat = req.chat;
-  const queryString = {
-    page: req.query.page,
-    pageSize: req.query.pageSize,
+  const queryString: IQueryString = {
+    page: +(req.query.page as string),
+    pageSize: +(req.query.pageSize as string),
     sort: "-createdAt",
-    search: req.query.search,
+    search: req.query.search as string,
   }
-  const apiFeature = new ApiFeature(messageModel.find({ chat: chat._id }).populate("user"), queryString)
+  const apiFeature = new ApiFeature(messageModel.find({ chat: chat._id }).populate("user"), queryString, { chat: chat._id })
     .paginate()
     .sort()
     .search({
       content: { $regex: req.query.search, $options: "i" }
     });
   const messages = await apiFeature.get();
-  const total = messages.length;
+  const total = await apiFeature.getTotal();
 
   const response: OKResponse = {
     message: "Success",
