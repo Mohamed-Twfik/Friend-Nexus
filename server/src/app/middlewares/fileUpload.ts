@@ -43,7 +43,7 @@ const getUploadMW = (filter: "image" | "media" | "any", operation: "single" | "a
 
   let uploadOperation: Function;
   if (operation === "single") uploadOperation = upload.single(fileInBody);
-  else uploadOperation = upload.array(fileInBody);
+  else uploadOperation = upload.array(fileInBody, 10);
 
   return catchErrors(async (req, res, next) => {
     uploadOperation(req, res, function (err: Error) {
