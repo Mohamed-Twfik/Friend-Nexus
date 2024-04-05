@@ -1,6 +1,6 @@
 import { IChatGroup, IChatSchema, IChatUser } from "../types/chat.type";
 import catchErrors from "../utils/catchErrors";
-import ChatModel from "../models/chat.model";
+import chatModel from "../models/chat.model";
 import chatUserModel from "../models/chatUser.model";
 import { OKResponse } from "../types/response";
 import { validationResult } from "express-validator";
@@ -9,7 +9,7 @@ import ApiFeatures from "../utils/apiFeatures";
 import { IFriendShipSchema } from "../types/friendShip.type";
 import userModel from "../models/user.model";
 import { IUserSchema } from "../types/user.type";
-import chatModel from "../models/chat.model";
+import fs from "fs";
 
 export const getUserChats = catchErrors(async (req, res, next) => {
   const user = req.authUser;
@@ -80,6 +80,8 @@ export const createChat = catchErrors(async (req, res, next) => {
 
   const user = req.authUser;
   const { name, description, access } = req.body;
+
+  
   const chatData: IChatGroup = {
     type: "group",
     name: name,
@@ -87,7 +89,8 @@ export const createChat = catchErrors(async (req, res, next) => {
     description: description || `Chat group for ${name}`,
     admin: user._id
   };
-  const chat = await ChatModel.create(chatData);
+  if(req.file) chatData.logo = req.file.filename; 
+  const chat = await chatModel.create(chatData);
   const chatUserData: IChatUser = {
     userRole: "admin",
     user: user._id,
@@ -108,6 +111,16 @@ export const updateChat = catchErrors(async (req, res, next) => {
   
   chat.name = name || chat.name;
   chat.description = description || chat.description;
+
+  if (req.file) {
+    if (chat.logo) {
+      fs.unlink(`uploads/${chat.logo}`, (err) => {
+        if(err) console.log(err);
+      });
+    }
+    chat.logo = req.file.filename;
+  }
+
   await chat.save();
 
   const response: OKResponse = {
@@ -119,7 +132,14 @@ export const updateChat = catchErrors(async (req, res, next) => {
 
 export const deleteChat = catchErrors(async (req, res, next) => {
   const chat = req.chat;
-  await chat.deleteOne();
+
+  if (chat.logo) {
+    fs.unlink(`uploads/${chat.logo}`, (err) => {
+      if(err) console.log(err);
+    });
+  }
+
+  await chatModel.findOneAndDelete({ _id: chat._id });
 
   const response: OKResponse = {
     message: "Success",

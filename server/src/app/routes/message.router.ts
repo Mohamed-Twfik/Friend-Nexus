@@ -18,13 +18,14 @@ import {
   messageIdValidator,
   updateMessageValidator
 } from "../middlewares/validators/message.validator";
+import uploadMW from "../middlewares/fileUpload";
 
 
 const router = express.Router();
 
 router.get("/list/:chatId", chatIdValidator(), getAndAddChatMessagePermission, getChatMessages);
-router.post("/new/:chatId", createMessageValidator(), getAndAddChatMessagePermission, createMessage);
-router.patch("/:messageId", updateMessageValidator(), checkMessageOwner, updateMessage);
+router.post("/new/:chatId", uploadMW("media", "array", "files"), createMessageValidator(), getAndAddChatMessagePermission, createMessage);
+router.patch("/:messageId", uploadMW("media", "array", "files"), updateMessageValidator(), checkMessageOwner, updateMessage);
 router.delete("/:messageId", messageIdValidator(), deleteMessagePermission, deleteMessage);
 
 export default router;

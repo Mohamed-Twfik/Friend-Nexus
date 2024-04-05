@@ -20,13 +20,14 @@ import {
   userIdValidator,
   verifyNewEmailValidator
 } from "../middlewares/validators/user.validator";
+import uploadMW from "../middlewares/fileUpload";
 
 const router = express.Router();
 
 router.get("/list", getAllUsers);
 router.get("/profile/:userId", userIdValidator(), getOneUserPermission, getUser);
 
-router.patch("/", updateUserValidator(), updateUser);
+router.patch("/", uploadMW("image", "single", "logo"), updateUserValidator(), updateUser);
 router.patch("/updatePassword", updatePasswordValidator(), updatePassword);
 router.patch("/updateRole/:userId", userIdValidator(), updateRole);
 router.patch("/updateEmail", requestUpdateEmailValidator(), requestUpdateEmail)

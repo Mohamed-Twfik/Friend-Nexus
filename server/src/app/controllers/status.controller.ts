@@ -4,6 +4,9 @@ import ApiFeatures from "../utils/apiFeatures";
 import { OKResponse } from "../types/response";
 import friendShipModel from "../models/friendShip.model";
 import { IStatus } from "../types/status.type";
+import errorMessage from "../utils/errorMessage";
+import { validationResult } from "express-validator";
+import fs from "fs";
 
 export const getUserStatusList = catchErrors(async (req, res, next) => {
   const user = req.authUser;
@@ -80,6 +83,9 @@ export const getFriendsStatusList = catchErrors(async (req, res, next) => {
 
 
 export const getOneStatus = catchErrors(async (req, res, next) => {
+  const errors = validationResult(req);
+  if(!errors.isEmpty()) return next(errorMessage(422, "Invalid Data", errors.array()));
+
   const status = req.status;
   const response: OKResponse = {
     message: "Success",
@@ -90,14 +96,21 @@ export const getOneStatus = catchErrors(async (req, res, next) => {
 
 
 export const createStatus = catchErrors(async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return next(errorMessage(422, "Invalid Data", errors.array()));
+  
   const user = req.authUser;
   const { content } = req.body;
-  const statusData: IStatus = {
-    content: content || "",
-    user: user._id
-  }
-  const status = await statusModel.create(statusData);
 
+  if(!content && !req.file) return next(errorMessage(422, "Content or file is required"));
+  
+  const statusData: IStatus = {
+    user: user._id
+  };
+  if (req.file) statusData.file = req.file.filename;
+  if (content) statusData.content = content;
+  const status = await statusModel.create(statusData);
+  
   const response: OKResponse = {
     message: "Success",
     data: status,
@@ -107,7 +120,17 @@ export const createStatus = catchErrors(async (req, res, next) => {
 
 
 export const deleteStatus = catchErrors(async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return next(errorMessage(422, "Invalid Data", errors.array()));
+  
   const status = req.status;
+
+  if (status.file) {
+    fs.unlink(`uploads/${status.file}`, (err) => {
+      if(err) console.log(err);
+    });
+  }
+
   await status.deleteOne();
 
   const response: OKResponse = {

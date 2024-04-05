@@ -111,11 +111,3 @@ userSchema.post('findOneAndDelete', async function (doc) {
 });
 
 export default mongoose.model<IUserSchema>("User", userSchema);
-
-
-
-// 0910
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2MGRkMzNkN2YxYTk3M2FlNWE0Mjk5NyIsImlhdCI6MTcxMjE4MjEyNSwiZXhwIjoxNzEyMTg1NzI1fQ.kPA3hv5nYEJjcjZcdejEEdPf9QnqGDZTCJLxK4Q7jUA
-
-// 910
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2MGRkMzQxN2YxYTk3M2FlNWE0Mjk5YiIsImlhdCI6MTcxMjE4MjE3MCwiZXhwIjoxNzEyMTg1NzcwfQ.khM0LfP5_cD4U9WCfJIsYgge6Trpg2yz1thU7PVdXOM

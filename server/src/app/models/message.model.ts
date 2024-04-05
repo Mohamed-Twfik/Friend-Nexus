@@ -7,6 +7,7 @@ const messageSchema = new mongoose.Schema<IMessageSchema>({
     },
     files: {
       type: [String],
+      default: undefined,
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
