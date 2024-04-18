@@ -19,21 +19,21 @@ export const getAllUsers = catchErrors(async (req, res, next) => {
   };
 
   const apiFeature = new ApiFeature(userModel.find(), queryString)
-  .paginate()
-  .search({
-    $or: [
-      { fname: { $regex: req.query.search, $options: "i" } },
-      { lname: { $regex: req.query.search, $options: "i" } },
-      { email: { $regex: req.query.search, $options: "i" } },
-    ]
-  })
-  .sort();
-  const result = await apiFeature.get();
+    .search({
+      $or: [
+        { fname: { $regex: queryString.search, $options: "i" } },
+        { lname: { $regex: queryString.search, $options: "i" } },
+        { email: { $regex: queryString.search, $options: "i" } },
+      ]
+    })
+    .sort()
+    .paginate();
+  const users = await apiFeature.get();
   const totalLength = await apiFeature.getTotal();
   const response: OKResponse = {
     message: "Success",
     data: {
-      result,
+      result: users,
       totalLength,
     },
   };

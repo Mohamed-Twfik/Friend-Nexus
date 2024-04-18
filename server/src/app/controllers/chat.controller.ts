@@ -5,8 +5,6 @@ import chatUserModel from "../models/chatUser.model";
 import { OKResponse } from "../types/response";
 import { validationResult } from "express-validator";
 import errorMessage from "../utils/errorMessage";
-import ApiFeatures from "../utils/apiFeatures";
-import { IFriendShipSchema } from "../types/friendShip.type";
 import userModel from "../models/user.model";
 import { IUserSchema } from "../types/user.type";
 import fs from "fs";
@@ -17,31 +15,153 @@ export const getUserChats = catchErrors(async (req, res, next) => {
   const user = req.authUser;
 
   const queryString: IQueryString = {
-    page: +(req.query.page as string),
-    pageSize: +(req.query.pageSize as string),
+    page: +(req.query.page as string) || 1,
+    pageSize: +(req.query.pageSize as string) || 5,
     sort: "-createdAt",
+    search: req.query.search as string || "",
   };
-  const apiFeatures = new ApiFeatures(chatUserModel.find({ user: user._id }).populate("chat"), queryString, { user: user._id })
-    .paginate()
-    .sort();
-  const userChats = await apiFeatures.get();
-  const chats = await Promise.all(userChats.map(async (userChat: IChatUser) => {
+  
+  const sharedAggregate = [
+    {
+      $match: {
+        user: user._id
+      }
+    },
+    {
+      $lookup: {
+        from: "chats",
+        localField: "chat",
+        foreignField: "_id",
+        as: "chat"
+      }
+    },
+    {
+      $unwind: "$chat"
+    },
+    {
+      $lookup: {
+        from: "friendships",
+        localField: "chat.friendShip",
+        foreignField: "_id",
+        as: "chat.friendShip"
+      }
+    },
+    {
+      $unwind: {
+        path: "$chat.friendShip",
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "chat.friendShip.user1",
+        foreignField: "_id",
+        as: "chat.friendShip.user1"
+      }
+    },
+    {
+      $unwind: {
+        path: "$chat.friendShip.user1",
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "chat.friendShip.user2",
+        foreignField: "_id",
+        as: "chat.friendShip.user2"
+      }
+    },
+    {
+      $unwind: {
+        path: "$chat.friendShip.user2",
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $match: {
+        $or: [
+          { "chat.name": { $regex: queryString.search, $options: "i" } },
+          { "chat.description": { $regex: queryString.search, $options: "i" } },
+          { "chat.friendShip.user1.fname": { $regex: queryString.search, $options: "i" } },
+          { "chat.friendShip.user1.lname": { $regex: queryString.search, $options: "i" } },
+          { "chat.friendShip.user1.email": { $regex: queryString.search, $options: "i" } },
+          { "chat.friendShip.user2.fname": { $regex: queryString.search, $options: "i" } },
+          { "chat.friendShip.user2.lname": { $regex: queryString.search, $options: "i" } },
+          { "chat.friendShip.user2.email": { $regex: queryString.search, $options: "i" } },
+        ]
+      }
+    },
+  ];
+
+  const userChatsAggregate = [
+    ...sharedAggregate,
+    {
+      $project: {
+        updatedAt: 1,
+        chat: {
+          _id: 1,
+          type: 1,
+          name: 1,
+          description: 1,
+          logo: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          friendShip: {
+            user1: {
+              _id: 1,
+              fname: 1,
+              lname: 1,
+              email: 1,
+              logo: 1,
+            },
+            user2: {
+              _id: 1,
+              fname: 1,
+              lname: 1,
+              email: 1,
+              logo: 1,
+            }
+          }
+        },
+      }
+    },
+    {
+      $skip: (queryString.page as number - 1) * (queryString.pageSize as number),
+    },
+    {
+      $limit: queryString.pageSize as number,
+    },
+  ];
+
+  const totalLengthAggregate = [
+    ...sharedAggregate,
+    {
+      $count: "totalLength"
+    }
+  ];
+
+  const userChats = await chatUserModel.aggregate(userChatsAggregate);
+  const totalLengthResult = await chatUserModel.aggregate(totalLengthAggregate);
+  const totalLength = totalLengthResult.length > 0 ? totalLengthResult[0].totalLength : 0;
+
+  const chats = userChats.map((userChat) => {
     if ((userChat.chat as IChatSchema).type === "private") {
-      const friendShip = (userChat.chat as IChatSchema).friendShip;
-      let friend: IUserSchema = {} as IUserSchema;
-      if ((friendShip as IFriendShipSchema).user1.toString() === user._id.toString()) {
-        friend = await userModel.findById((friendShip as IFriendShipSchema).user2) as IUserSchema;
-      }else if ((friendShip as IFriendShipSchema).user2.toString() === user._id.toString()) {
-        friend = await userModel.findById((friendShip as IFriendShipSchema).user1) as IUserSchema;
-      };
+      let friend = {} as IUserSchema;
+      
+      
+      if (userChat.chat.friendShip.user1._id.toString() === user._id.toString()) friend = userChat.chat.friendShip.user2 as IUserSchema;
+      else if (userChat.chat.friendShip.user2._id.toString() === user._id.toString()) friend = userChat.chat.friendShip.user1 as IUserSchema;
+      
       (userChat.chat as IChatSchema).name = `${friend.fname} ${friend.lname}`;
       (userChat.chat as IChatSchema).logo = `${friend.logo}`;
-      delete (userChat.chat as IChatSchema).friendShip;
-      await (userChat.chat as IChatSchema).save();
-    };
-    return userChat.chat
-  }));
-  const totalLength = await apiFeatures.getTotal();
+      (userChat.chat as IChatSchema).description = `${friend.fname} ${friend.lname} Friend Chat`;
+    }
+    (userChat.chat as IChatSchema).friendShip = undefined;
+    return userChat.chat;
+  });
 
   const response: OKResponse = {
     message: "Success",
@@ -153,16 +273,71 @@ export const deleteChat = catchErrors(async (req, res, next) => {
 
 export const getChatUsers = catchErrors(async (req, res, next) => {
   const chat = req.chat;
-
   const queryString: IQueryString = {
-    page: +(req.query.page as string),
-    pageSize: +(req.query.pageSize as string),
+    page: +(req.query.page as string) || 1,
+    pageSize: +(req.query.pageSize as string) || 5,
+    search: req.query.search as string || "",
   };
-  const apiFeatures = new ApiFeatures(chatUserModel.find({ chat: chat._id }).populate("user"), queryString, { chat: chat._id })
-    .paginate();
-  const chatUsers = await apiFeatures.get();
+
+  const sharedAggregate = [
+    {
+      $match: {
+        chat: chat._id,
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "user",
+        foreignField: "_id",
+        as: "user"
+      }
+    },
+    {
+      $unwind: "$user",
+    },
+    {
+      $match: {
+        user: { $ne: null },
+        $or: [
+          { "user.fname": { $regex: queryString.search, $options: "i" } },
+          { "user.lname": { $regex: queryString.search, $options: "i" } },
+          { "user.email": { $regex: queryString.search, $options: "i" } },
+        ]
+      }
+    },
+  ] 
+
+  const totalLengthAggregate = [
+    ...sharedAggregate,
+    {
+      $count: "totalLength"
+    }
+  ]
+
+  const chatUsersAggregate = [
+    ...sharedAggregate,
+    {
+      $project: {
+        "user._id": 1,
+        "user.fname": 1,
+        "user.lname": 1,
+        "user.email": 1,
+        "user.logo": 1,
+      }
+    },
+    {
+      $skip: (queryString.page as number - 1) * (queryString.pageSize as number),
+    },
+    {
+      $limit: queryString.pageSize as number,
+    },
+  ]
+
+  const chatUsers = await chatUserModel.aggregate(chatUsersAggregate);
+  const totalLengthResult = await chatUserModel.aggregate(totalLengthAggregate);
+  const totalLength = totalLengthResult.length > 0 ? totalLengthResult[0].totalLength : 0;
   const users = chatUsers.map((chatUser: IChatUser) => chatUser.user);
-  const totalLength = await apiFeatures.getTotal();
 
   const response: OKResponse = {
     message: "Success",

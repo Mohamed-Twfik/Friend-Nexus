@@ -3,7 +3,7 @@ import {
   acceptFriendRequest,
   deleteOrRejectFriend,
   getFriendList,
-  getFriendRequestList,
+  getFriendReceiveList,
   getFriendSendList,
   sendFriendRequest
 } from "../controllers/friendShip.controller";
@@ -15,7 +15,7 @@ import {
 const router = express.Router();
 
 router.get("/list", getFriendList);
-router.get("/receive/list", getFriendRequestList);
+router.get("/receive/list", getFriendReceiveList);
 router.get("/send/list", getFriendSendList);
 
 router.post("/send/:userId", sendFriendRequestValidator(), sendFriendRequest);

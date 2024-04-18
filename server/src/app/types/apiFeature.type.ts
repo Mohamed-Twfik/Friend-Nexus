@@ -4,6 +4,8 @@ export interface IApiFeature {
   sort(): IApiFeature;
   search(conditions: object[]): IApiFeature;
   fields(): IApiFeature;
+  get(): Promise<any>;
+  getTotal(): Promise<number>;
 }
 
 export interface IQueryString {

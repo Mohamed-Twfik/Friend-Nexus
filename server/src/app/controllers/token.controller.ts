@@ -10,7 +10,10 @@ export const getUserTokens = catchErrors(async (req, res, next) => {
 
   const response: OKResponse = {
     message: "Success",
-    data: tokens
+    data: {
+      result: tokens,
+      totalLength: tokens.length
+    }
   };
   res.status(200).json(response);
 });

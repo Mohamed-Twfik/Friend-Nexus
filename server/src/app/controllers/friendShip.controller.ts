@@ -15,59 +15,102 @@ import { IQueryString } from "../types/apiFeature.type";
 
 export const getFriendList = catchErrors(async (req: CustomRequest, res: Response, next: NextFunction) => {
   const user = req.authUser;
-  const search = req.query.search as string;
   const queryString: IQueryString = {
-    page: +(req.query.page as string),
-    pageSize: +(req.query.pageSize as string),
+    page: +(req.query.page as string) || 1,
+    pageSize: +(req.query.pageSize as string) || 5,
     sort: req.query.sort as string || "-createdAt",
+    search: req.query.search as string || "",
   };
-  const condition = {
-    $and: [
-      { status: "accepted" },
-      { $or: [
+
+  const sharedAggregate = [
+    {
+      $match: {
+        $or: [
           { user1: user._id },
           { user2: user._id }
+        ],
+        status: "accepted"
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "user1",
+        foreignField: "_id",
+        as: "user1"
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "user2",
+        foreignField: "_id",
+        as: "user2"
+      }
+    },
+    {
+      $unwind: "$user1"
+    },
+    {
+      $unwind: "$user2"
+    },
+    {
+      $project: {
+        user: {
+          $cond: {
+            if: { $eq: ["$user1._id", user._id] },
+            then: "$user2",
+            else: "$user1"
+          }
+        }
+      }
+    },
+    {
+      $project: {
+        "user._id": 1,
+        "user.fname": 1,
+        "user.lname": 1,
+        "user.email": 1,
+        "user.logo": 1,
+      }
+    },
+    {
+      $match: {
+        $or: [
+          {"user.fname": { $regex: queryString.search, $options: "i" }},
+          {"user.lname": { $regex: queryString.search, $options: "i" }},
+          {"user.email": { $regex: queryString.search, $options: "i" }}
         ]
       }
-    ]
-  }
-  const apiFeature = new ApiFeature(
-    friendShipModel.find(condition).populate({
-      path: "user1",
-      select: "-password -changePasswordAt -__v"
-    }).populate({
-      path: "user2",
-      select: "-password -changePasswordAt -__v"
-    }),
-    queryString, condition)
-    .paginate()
-    .sort();
-  const friendShips = await apiFeature.get();
-  
-  const friendList = friendShips.map((friendShip: IFriendShipSchema) => {
-    const regex = new RegExp(search, "i");
-    const user1 = friendShip.user1 as IUserSchema;
-    const user2 = friendShip.user2 as IUserSchema;
-    if (user1._id.toString() === user._id.toString()) {
-      if (req.query.search) {
-        if ((regex.test(user2.fname) || regex.test(user2.lname) || regex.test(user2.email))) return user2;
-      }
-      else return user2;
-    }
-    else {
-      if (req.query.search) {
-        if ((regex.test(user1.fname) || regex.test(user1.lname) || regex.test(user1.email))) return user1;
-      }
-      else return user1;
-    }
-  });
+    },
+  ];
 
-  const totalLength = await apiFeature.getTotal();
+  const friendsListAggregate = [
+    ...sharedAggregate,
+    {
+      $skip: ((queryString.page as number) - 1) * (queryString.pageSize as number)
+    },
+    {
+      $limit: (queryString.pageSize as number)
+    }
+  ];
+
+  const totalLengthAggregate = [
+    ...sharedAggregate,
+    {
+      $count: "totalLength"
+    }
+  ];
+
+  const friendsList = await friendShipModel.aggregate(friendsListAggregate);
+  const friends = friendsList.map((friend: any) => friend.user);
+  const totalLengthResult = await friendShipModel.aggregate(totalLengthAggregate);
+  const totalLength = totalLengthResult.length > 0 ? totalLengthResult[0].totalLength : 0;
 
   const response: OKResponse = {
     message: "Success",
     data: {
-      result: friendList,
+      result: friends,
       totalLength,
     },
   };
@@ -75,40 +118,79 @@ export const getFriendList = catchErrors(async (req: CustomRequest, res: Respons
 });
 
 
-export const getFriendRequestList = catchErrors(async (req: CustomRequest, res: Response, next: NextFunction) => {
+export const getFriendReceiveList = catchErrors(async (req: CustomRequest, res: Response, next: NextFunction) => {
   const user = req.authUser;
-  const search = req.query.search as string;
   const queryString: IQueryString = {
-    page: +(req.query.page as string),
-    pageSize: +(req.query.pageSize as string),
+    page: +(req.query.page as string) || 1,
+    pageSize: +(req.query.pageSize as string) || 5,
     sort: req.query.sort as string || "-createdAt",
+    search: req.query.search as string || "",
   };
-  const condition = {
-    $and: [
-      { status: "pending" },
-      { user2: user._id }
-    ]
-  }
-  const apiFeature = new ApiFeature(friendShipModel.find(condition).populate("user1"), queryString, condition)
-    .paginate()
-    .sort();
-  const friendShips = await apiFeature.get();
+  
+  const sharedAggregate = [
+    {
+      $match: {
+        user2: user._id,
+        status: "pending"
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "user1",
+        foreignField: "_id",
+        as: "user"
+      }
+    },
+    {
+      $unwind: "$user"
+    },
+    {
+      $project: {
+        "user._id": 1,
+        "user.fname": 1,
+        "user.lname": 1,
+        "user.email": 1,
+        "user.logo": 1,
+      }
+    },
+    {
+      $match: {
+        $or: [
+          {"user.fname": { $regex: queryString.search, $options: "i" }},
+          {"user.lname": { $regex: queryString.search, $options: "i" }},
+          {"user.email": { $regex: queryString.search, $options: "i" }}
+        ]
+      }
+    },
+  ];
 
-  const friendRequestList = friendShips.map((friendShip: IFriendShipSchema) => {
-    const regex = new RegExp(search, "i");
-    const user1 = friendShip.user1 as IUserSchema;
-    if (req.query.search) {
-      if ((regex.test(user1.fname) || regex.test(user1.lname) || regex.test(user1.email))) return user1;
+  const friendsListAggregate = [
+    ...sharedAggregate,
+    {
+      $skip: ((queryString.page as number) - 1) * (queryString.pageSize as number)
+    },
+    {
+      $limit: (queryString.pageSize as number)
     }
-    else return user1;
-  });
+  ];
 
-  const totalLength = await apiFeature.getTotal();
+  const totalLengthAggregate = [
+    ...sharedAggregate,
+    {
+      $count: "totalLength"
+    }
+  ];
+
+  const friendsList = await friendShipModel.aggregate(friendsListAggregate);
+  const friends = friendsList.map((friend: any) => friend.user);
+  const totalLengthResult = await friendShipModel.aggregate(totalLengthAggregate);
+  const totalLength = totalLengthResult.length > 0 ? totalLengthResult[0].totalLength : 0;
 
   const response: OKResponse = {
     message: "Success",
     data: {
-      result: friendRequestList,
+      result: friends,
       totalLength,
     },
   };
@@ -117,39 +199,78 @@ export const getFriendRequestList = catchErrors(async (req: CustomRequest, res: 
 
 
 export const getFriendSendList = catchErrors(async (req: CustomRequest, res: Response, next: NextFunction) => {
-  const user = req.authUser;
-  const search = req.query.search as string;
+    const user = req.authUser;
   const queryString: IQueryString = {
-    page: +(req.query.page as string),
-    pageSize: +(req.query.pageSize as string),
+    page: +(req.query.page as string) || 1,
+    pageSize: +(req.query.pageSize as string) || 5,
     sort: req.query.sort as string || "-createdAt",
+    search: req.query.search as string || "",
   };
-  const condition = {
-    $and: [
-      { status: "pending" },
-      { user1: user._id }
-    ]
-  }
-  const apiFeature = new ApiFeature(friendShipModel.find(condition).populate("user2"), queryString, condition)
-    .paginate()
-    .sort();
-  const friendShips = await apiFeature.get();
+  
+  const sharedAggregate = [
+    {
+      $match: {
+        user1: user._id,
+        status: "pending"
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "user2",
+        foreignField: "_id",
+        as: "user"
+      }
+    },
+    {
+      $unwind: "$user"
+    },
+    {
+      $project: {
+        "user._id": 1,
+        "user.fname": 1,
+        "user.lname": 1,
+        "user.email": 1,
+        "user.logo": 1,
+      }
+    },
+    {
+      $match: {
+        $or: [
+          {"user.fname": { $regex: queryString.search, $options: "i" }},
+          {"user.lname": { $regex: queryString.search, $options: "i" }},
+          {"user.email": { $regex: queryString.search, $options: "i" }}
+        ]
+      }
+    },
+  ];
 
-  const friendSendList = friendShips.map((friendShip: IFriendShipSchema) => {
-    const regex = new RegExp(search, "i");
-    const user2 = friendShip.user2 as IUserSchema;
-    if (req.query.search) {
-      if ((regex.test(user2.fname) || regex.test(user2.lname) || regex.test(user2.email))) return user2;
+  const friendsListAggregate = [
+    ...sharedAggregate,
+    {
+      $skip: ((queryString.page as number) - 1) * (queryString.pageSize as number)
+    },
+    {
+      $limit: (queryString.pageSize as number)
     }
-    else return user2;
-  });
+  ];
 
-  const totalLength = await apiFeature.getTotal();
+  const totalLengthAggregate = [
+    ...sharedAggregate,
+    {
+      $count: "totalLength"
+    }
+  ];
+
+  const friendsList = await friendShipModel.aggregate(friendsListAggregate);
+  const friends = friendsList.map((friend: any) => friend.user);
+  const totalLengthResult = await friendShipModel.aggregate(totalLengthAggregate);
+  const totalLength = totalLengthResult.length > 0 ? totalLengthResult[0].totalLength : 0;
 
   const response: OKResponse = {
     message: "Success",
     data: {
-      result: friendSendList,
+      result: friends,
       totalLength,
     },
   };

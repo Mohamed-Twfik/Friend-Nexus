@@ -10,18 +10,19 @@ import path from "path";
 
 export const getChatMessages = catchErrors(async (req, res, next) => {
   const chat = req.chat;
+  const search = req.query.search as string
   const queryString: IQueryString = {
     page: +(req.query.page as string),
     pageSize: +(req.query.pageSize as string),
     sort: "-createdAt",
-    search: req.query.search as string,
+    search: search,
   }
   const apiFeature = new ApiFeature(messageModel.find({ chat: chat._id }).populate("user"), queryString, { chat: chat._id })
-    .paginate()
     .sort()
     .search({
-      content: { $regex: req.query.search, $options: "i" }
-    });
+      content: { $regex: search, $options: "i" }
+    })
+    .paginate();
   const messages = await apiFeature.get();
   const total = await apiFeature.getTotal();
 

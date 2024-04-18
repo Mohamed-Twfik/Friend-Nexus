@@ -12,22 +12,27 @@ import { IQueryString } from "../types/apiFeature.type";
 
 export const getUserStatusList = (to: "owner" | "friend") => {
   return catchErrors(async (req, res, next) => {
-    const user = (to === "owner") ? req.authUser : req.user;
-    console.log(user)
+    let user;
+    if (to === "owner") {
+      user = req.authUser;
+    } else {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) return next(errorMessage(422, "Invalid Data", errors.array()));
+      user = req.user;
+    }
+    
     const queryString: IQueryString = {
       page: +(req.query.page as string),
       pageSize: +(req.query.pageSize as string),
       sort: "-createdAt",
-      search: req.query.search as string,
-      fields: "-__v",
+      search: req.query.search as string
     };
     const apiFeatures = new ApiFeatures(statusModel.find({ user: user._id }), queryString, { user: user._id })
-      .paginate()
-      .fields()
       .search({
         content: { $regex: queryString.search, $options: "i" }
       })
-      .sort();
+      .sort()
+      .paginate();
     
     const statuses = await apiFeatures.get();
     const totalLength = await apiFeatures.getTotal();
@@ -35,7 +40,7 @@ export const getUserStatusList = (to: "owner" | "friend") => {
     const response: OKResponse = {
       message: "Success",
       data: {
-        statuses,
+        result: statuses,
         totalLength
       }
     };
