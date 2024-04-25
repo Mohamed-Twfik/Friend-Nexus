@@ -4,19 +4,18 @@ import helmet from "helmet";
 import dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
 import path from "path";
-import dbConnection from "./db/dbConnection";
+import dbConnection from "./dbConnection";
 import router from "./app/router"
 
 
 dotenv.config();
 const app = express();
-const port = 5000;
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
 });
 
-dbConnection(app, port);
+dbConnection(app);
 
 // CORS configuration
 // const whitelist = [/* 'https://noporata.onrender.com', */ 'http://localhost:5157',"http://localhost:4173"];

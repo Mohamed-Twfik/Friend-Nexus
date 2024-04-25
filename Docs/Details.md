@@ -20,13 +20,13 @@
 
 - Status Updates: Share updates with your friends through customizable status messages, letting them know what you're up to or how you're feeling.
 
-- Redis Caching: Enhance performance and scalability by utilizing Redis caching for frequently accessed data. Cache user profiles, recent messages, and other relevant data to reduce database load and improve response times.
-
 - Real-Time Communication with Socket.IO: Enable real-time messaging and notifications using Socket.IO. Stay connected with friends seamlessly, with instant updates on new messages, friend requests, and group activities.
 
 ## Future Features:
 
 - Add OAuth using google and other platforms
+
+- Redis Caching: Enhance performance and scalability by utilizing Redis caching for frequently accessed data. Cache user profiles, recent messages, and other relevant data to reduce database load and improve response times.
 
 - The user has the capability to generate and submit reports directly to the platform's administrator. 
 
@@ -74,15 +74,3 @@
 - Mobile Apps: Develop native mobile apps for iOS and Android platforms to provide users with a seamless and optimized experience on their mobile devices.
 
 - Monetization Options: Explore monetization options such as advertising, sponsored content, premium features, or subscription plans to generate revenue from the platform.
-
-## Names:
-- SocialSphere
-- ConnectVerse
-- NexusNet
-- SociLink
-- UniVerse
-- CircleSpace
-- LinkHub
-- CommunityConnect
-- SocioSphere
-- UnityNet

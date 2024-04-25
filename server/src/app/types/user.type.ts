@@ -18,6 +18,7 @@ export interface IUser {
   }
   newEmail?: string
   verified?: boolean
+  socketId?: string
 }
 
 export interface IUserSchema extends IUser, Document {}

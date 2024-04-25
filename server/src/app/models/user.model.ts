@@ -60,7 +60,8 @@ const userSchema = new mongoose.Schema<IUserSchema>({
     verified: {
       type: Boolean,
       default: false
-    }
+    },
+    socketId: String
   },
   { timestamps: true });
 

@@ -2,7 +2,6 @@ import statusModel from "../models/status.model";
 import catchErrors from "../utils/catchErrors";
 import ApiFeatures from "../utils/apiFeatures";
 import { OKResponse } from "../types/response";
-import friendShipModel from "../models/friendShip.model";
 import { IStatus } from "../types/status.type";
 import errorMessage from "../utils/errorMessage";
 import { validationResult } from "express-validator";
