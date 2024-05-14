@@ -39,7 +39,7 @@ const app = (0, express_1.default)();
     app.use(limiter);
     app.use((0, cors_1.default)(corsOptions));
     app.use((0, helmet_1.default)());
-    const accessLogStream = fs_1.default.createWriteStream(path_1.default.join(__dirname, "access.log"), { flags: "a" });
+    const accessLogStream = fs_1.default.createWriteStream(path_1.default.join(__dirname, "..", "access.log"), { flags: "a" });
     app.use((0, morgan_1.default)("combined", { stream: accessLogStream }));
     app.use((0, compression_1.default)());
     app.use(express_1.default.json());
