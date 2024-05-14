@@ -19,8 +19,8 @@ const allowedTo = (...roles) => {
         roles = ["admin", "moderator", "user"];
     return (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
-        if (!roles.includes(req.user.role))
-            return next((0, errorMessage_1.default)(401, `Not Authorized To Access This Route You Are ${(_a = req.user) === null || _a === void 0 ? void 0 : _a.role}`));
+        if (!roles.includes(req.authUser.role))
+            return next((0, errorMessage_1.default)(401, `Not Authorized To Access This Route You Are ${(_a = req.authUser) === null || _a === void 0 ? void 0 : _a.role}`));
         next();
     }));
 };

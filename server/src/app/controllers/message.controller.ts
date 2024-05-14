@@ -7,6 +7,12 @@ import catchErrors from "../utils/catchErrors";
 import errorMessage from "../utils/errorMessage";
 import fs from "fs";
 import path from "path";
+import io from "../../socket";
+import friendShipModel from "../models/friendShip.model";
+import { IUserSchema } from "../types/user.type";
+import chatUserModel from "../models/chatUser.model";
+import { IChatSchema } from "../types/chat.type";
+import chatModel from "../models/chat.model";
 
 export const getChatMessages = catchErrors(async (req, res, next) => {
   const chat = req.chat;
@@ -52,6 +58,15 @@ export const createMessage = catchErrors(async (req, res, next) => {
   if(content) messageData.content = content;
   const message = await messageModel.create(messageData);
 
+  const data = {
+    action: "create",
+    data: {
+      message,
+      chat: chat._id,
+    },
+  }
+  await sendSocketEvent(chat, user, data);
+
   const response: OKResponse = {
     message: "Success",
     data: message,
@@ -61,6 +76,7 @@ export const createMessage = catchErrors(async (req, res, next) => {
 
 export const updateMessage = catchErrors(async (req, res, next) => {
   const message = req.message;
+  const user = req.authUser;
   const { content } = req.body;
   const files = req.files as Express.Multer.File[];
 
@@ -78,6 +94,13 @@ export const updateMessage = catchErrors(async (req, res, next) => {
   }
   await message.save();
 
+  const data = {
+    action: "update",
+    data: message
+  };
+  const chat = await chatModel.findById(message.chat) as IChatSchema;
+  await sendSocketEvent(chat, user, data);
+
   const response: OKResponse = {
     message: "Success",
     data: message,
@@ -87,6 +110,8 @@ export const updateMessage = catchErrors(async (req, res, next) => {
 
 export const deleteMessage = catchErrors(async (req, res, next) => {
   const message = req.message;
+  const user = req.authUser;
+  const chat = req.chat;
 
   if (message.files.length !== 0) {
     message.files.forEach((file: string) => {
@@ -99,8 +124,30 @@ export const deleteMessage = catchErrors(async (req, res, next) => {
 
   await message.deleteOne();
 
+  const data = {
+    action: "delete",
+    data: {
+      message,
+      chat: chat._id,
+    },
+  }
+  await sendSocketEvent(chat, user, data);
+
   const response: OKResponse = {
     message: "Success",
   };
   res.status(200).json(response);
 });
+
+const sendSocketEvent = async (chat: IChatSchema, user: IUserSchema, data: {action: string, data: object}) => {
+  if (chat.friendShip) {
+    const friendShip = await friendShipModel.findById(chat.friendShip).populate("user1").populate("user2");
+    const friend = (friendShip?.user1._id.toString() === user._id.toString()) ? friendShip?.user2 : friendShip?.user1;
+    io.getIO().in((friend as IUserSchema).socketId as string).emit("message", data);
+  } else {
+    const users = await chatUserModel.find({ chat: chat._id }).populate("user");
+    users.forEach((chatUser) => {
+      io.getIO().in((chatUser.user as IUserSchema).socketId as string).emit("message", data);
+    });
+  }
+}

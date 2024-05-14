@@ -44,5 +44,6 @@ export const deleteMessagePermission = catchErrors(async (req, res, next) => {
   } else {
     if(message.user.toString() !== user._id.toString() && chat.admin.toString() !== user._id.toString()) return next(errorMessage(403, "Access Denied."));
   }
+  req.chat = chat;
   next();
 });

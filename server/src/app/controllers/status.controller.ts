@@ -8,6 +8,9 @@ import { validationResult } from "express-validator";
 import fs from "fs";
 import path from "path";
 import { IQueryString } from "../types/apiFeature.type";
+import io from "../../socket";
+import friendShipModel from "../models/friendShip.model";
+import { IUserSchema } from "../types/user.type";
 
 export const getUserStatusList = (to: "owner" | "friend") => {
   return catchErrors(async (req, res, next) => {
@@ -76,7 +79,13 @@ export const createStatus = catchErrors(async (req, res, next) => {
   if (req.file) statusData.file = req.file.filename;
   if (content) statusData.content = content;
   const status = await statusModel.create(statusData);
-  
+
+  const data = {
+    action: "create",
+    data: status
+  };
+  await sendSocketEvent(user, data);
+
   const response: OKResponse = {
     message: "Success",
     data: status,
@@ -89,6 +98,7 @@ export const deleteStatus = catchErrors(async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return next(errorMessage(422, "Invalid Data", errors.array()));
   
+  const user = req.authUser;
   const status = req.status;
 
   if (status.file) {
@@ -100,8 +110,27 @@ export const deleteStatus = catchErrors(async (req, res, next) => {
 
   await status.deleteOne();
 
+  const data = {
+    action: "delete",
+    data: status
+  };
+  await sendSocketEvent(user, data);
+
   const response: OKResponse = {
     message: "Success",
   };
   res.status(200).json(response);
 });
+
+const sendSocketEvent = async (user: IUserSchema, data: {action: string, data: object}) => {
+  const friends = await friendShipModel.find({
+    status: "accepted", $or: [
+      { user1: user._id },
+      { user2: user._id }
+    ]
+  }).populate("user1").populate("user2");
+  friends.forEach(friend => {
+    const friendSocketId = friend.user1._id.toString() === user._id.toString() ? (friend.user2 as IUserSchema).socketId : (friend.user1 as IUserSchema).socketId;
+    io.getIO().in(friendSocketId as string).emit("status", data);
+  });
+}

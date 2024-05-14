@@ -3,16 +3,17 @@ import dotenv from "dotenv";
 import DeviceDetector from "device-detector-js";
 import { validationResult } from "express-validator";
 
-import errorMessage from "../utils/errorMessage";
-import catchErrors from "../utils/catchErrors";
 import userModel from "../models/user.model";
 import tokenModel from "../models/token.model";
+
+import errorMessage from "../utils/errorMessage";
+import catchErrors from "../utils/catchErrors";
 import generateRandomCode from "../utils/generateRandomCode";
 import sendMails from "../utils/sendMails";
 
 import {OKResponse} from "../types/response";
 import { IUser } from "../types/user.type";
-import { IToken } from "../types/token.type"; 
+import { IToken } from "../types/token.type";
 
 dotenv.config();
 const detector = new DeviceDetector();
@@ -127,7 +128,7 @@ export const newPassword = catchErrors(async (req, res, next) => {
 export const signout = catchErrors(async (req, res, next)=>{
   const user = req.authUser;
   const token = req.authToken;
-  await tokenModel.findOneAndDelete({token: token, user: user._id});
+  await tokenModel.findOneAndDelete({ token: token, user: user._id });
   const response: OKResponse = { message: "Signout Success" };
   res.status(200).json(response);
 });

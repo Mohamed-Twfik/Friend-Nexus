@@ -14,33 +14,39 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteUser = exports.verifyNewEmail = exports.requestUpdateEmail = exports.updateRole = exports.updatePassword = exports.updateUser = exports.getUser = exports.getAllUsers = void 0;
 const express_validator_1 = require("express-validator");
+const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
 const user_model_1 = __importDefault(require("../models/user.model"));
 const apiFeatures_1 = __importDefault(require("../utils/apiFeatures"));
 const catchErrors_1 = __importDefault(require("../utils/catchErrors"));
 const errorMessage_1 = __importDefault(require("../utils/errorMessage"));
 const generateRandomCode_1 = __importDefault(require("../utils/generateRandomCode"));
 const sendMails_1 = __importDefault(require("../utils/sendMails"));
+const socket_1 = __importDefault(require("../../socket"));
 exports.getAllUsers = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    req.query.fields = "-createdAt -updatedAt";
-    const apiFeature = new apiFeatures_1.default(user_model_1.default.find(), req.query)
-        .paginate()
-        .filter()
-        .fields()
+    const queryString = {
+        page: +req.query.page,
+        pageSize: +req.query.pageSize,
+        sort: "-createdAt",
+        search: req.query.search,
+    };
+    const apiFeature = new apiFeatures_1.default(user_model_1.default.find(), queryString)
         .search({
         $or: [
-            { fname: { $regex: req.query.search, $options: "i" } },
-            { lname: { $regex: req.query.search, $options: "i" } },
-            { email: { $regex: req.query.search, $options: "i" } },
+            { fname: { $regex: queryString.search, $options: "i" } },
+            { lname: { $regex: queryString.search, $options: "i" } },
+            { email: { $regex: queryString.search, $options: "i" } },
         ]
     })
-        .sort();
-    const result = yield apiFeature.get();
-    const total = result.length;
+        .sort()
+        .paginate();
+    const users = yield apiFeature.get();
+    const totalLength = yield apiFeature.getTotal();
     const response = {
         message: "Success",
         data: {
-            result,
-            total,
+            result: users,
+            totalLength,
         },
     };
     res.status(200).json(response);
@@ -60,7 +66,18 @@ exports.updateUser = (0, catchErrors_1.default)((req, res, next) => __awaiter(vo
     const user = req.authUser;
     user.fname = req.body.fname || user.fname;
     user.lname = req.body.lname || user.lname;
+    if (req.file) {
+        if (user.logo) {
+            const fileURL = path_1.default.join('uploads', user.logo);
+            fs_1.default.unlink(fileURL, (err) => {
+                if (err)
+                    console.log(err);
+            });
+        }
+        user.logo = req.file.filename;
+    }
     yield user.save();
+    user.password = undefined;
     const response = {
         message: "Success",
         data: user,
@@ -74,7 +91,7 @@ exports.updatePassword = (0, catchErrors_1.default)((req, res, next) => __awaite
     const user = req.authUser;
     user.password = req.body.password;
     yield user.save();
-    delete user.password;
+    user.password = undefined;
     const response = {
         message: "Success",
         data: user,
@@ -93,6 +110,11 @@ exports.updateRole = (0, catchErrors_1.default)((req, res, next) => __awaiter(vo
     else
         user.role = "user";
     yield user.save();
+    user.password = undefined;
+    socket_1.default.getIO().in(user.socketId).emit("user", {
+        action: "updateRole",
+        data: user.role
+    });
     const response = {
         message: "Success",
         data: user,
@@ -128,6 +150,7 @@ exports.verifyNewEmail = (0, catchErrors_1.default)((req, res, next) => __awaite
     user.newEmail = undefined;
     user.emailVerificationCode = undefined;
     yield user.save();
+    user.password = undefined;
     const response = {
         message: "Success",
         data: user,
@@ -136,7 +159,14 @@ exports.verifyNewEmail = (0, catchErrors_1.default)((req, res, next) => __awaite
 }));
 exports.deleteUser = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.user;
-    yield user.deleteOne();
+    if (user.logo) {
+        const fileURL = path_1.default.join("uploads", user.logo);
+        fs_1.default.unlink(fileURL, (err) => {
+            if (err)
+                console.log(err);
+        });
+    }
+    yield user_model_1.default.findOneAndDelete({ _id: user._id });
     const response = {
         message: "Success",
     };

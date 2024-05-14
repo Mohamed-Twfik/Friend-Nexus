@@ -12,142 +12,254 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteOrRejectFriend = exports.acceptFriendRequest = exports.sendFriendRequest = exports.getFriendSendList = exports.getFriendRequestList = exports.getFriendList = void 0;
+exports.deleteOrRejectFriend = exports.acceptFriendRequest = exports.sendFriendRequest = exports.getFriendSendList = exports.getFriendReceiveList = exports.getFriendList = void 0;
 const friendShip_model_1 = __importDefault(require("../models/friendShip.model"));
 const catchErrors_1 = __importDefault(require("../utils/catchErrors"));
-const apiFeatures_1 = __importDefault(require("../utils/apiFeatures"));
 const express_validator_1 = require("express-validator");
 const errorMessage_1 = __importDefault(require("../utils/errorMessage"));
 const chat_model_1 = __importDefault(require("../models/chat.model"));
+const chatUser_model_1 = __importDefault(require("../models/chatUser.model"));
+const socket_1 = __importDefault(require("../../socket"));
 exports.getFriendList = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.authUser;
-    const search = req.query.search + "" || "";
     const queryString = {
-        page: req.query.page,
-        pageSize: req.query.pageSize,
+        page: +req.query.page || 1,
+        pageSize: +req.query.pageSize || 5,
         sort: req.query.sort || "-createdAt",
+        search: req.query.search || "",
     };
-    const apiFeature = new apiFeatures_1.default(friendShip_model_1.default.find({
-        $and: [
-            { status: "accepted" },
-            { $or: [
+    const sharedAggregate = [
+        {
+            $match: {
+                $or: [
                     { user1: user._id },
                     { user2: user._id }
+                ],
+                status: "accepted"
+            }
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "user1",
+                foreignField: "_id",
+                as: "user1"
+            }
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "user2",
+                foreignField: "_id",
+                as: "user2"
+            }
+        },
+        {
+            $unwind: "$user1"
+        },
+        {
+            $unwind: "$user2"
+        },
+        {
+            $project: {
+                user: {
+                    $cond: {
+                        if: { $eq: ["$user1._id", user._id] },
+                        then: "$user2",
+                        else: "$user1"
+                    }
+                }
+            }
+        },
+        {
+            $project: {
+                "user._id": 1,
+                "user.fname": 1,
+                "user.lname": 1,
+                "user.email": 1,
+                "user.logo": 1,
+            }
+        },
+        {
+            $match: {
+                $or: [
+                    { "user.fname": { $regex: queryString.search, $options: "i" } },
+                    { "user.lname": { $regex: queryString.search, $options: "i" } },
+                    { "user.email": { $regex: queryString.search, $options: "i" } }
                 ]
             }
-        ]
-    }).populate({
-        path: "user1",
-        select: "-password -changePasswordAt -__v"
-    }).populate({
-        path: "user2",
-        select: "-password -changePasswordAt -__v"
-    }), queryString)
-        .paginate()
-        .sort();
-    const friendShips = yield apiFeature.get();
-    const friendList = friendShips.map((friendShip) => {
-        const regex = new RegExp(search, "i");
-        const user1 = friendShip.user1;
-        const user2 = friendShip.user2;
-        if (user1._id.toString() === user._id.toString()) {
-            if (req.query.search) {
-                if ((regex.test(user2.fname) || regex.test(user2.lname) || regex.test(user2.email)))
-                    return user2;
-            }
-            else
-                return user2;
+        },
+    ];
+    const friendsListAggregate = [
+        ...sharedAggregate,
+        {
+            $skip: (queryString.page - 1) * queryString.pageSize
+        },
+        {
+            $limit: queryString.pageSize
         }
-        else {
-            if (req.query.search) {
-                if ((regex.test(user1.fname) || regex.test(user1.lname) || regex.test(user1.email)))
-                    return user1;
-            }
-            else
-                return user1;
+    ];
+    const totalLengthAggregate = [
+        ...sharedAggregate,
+        {
+            $count: "totalLength"
         }
-    });
-    const total = friendList.length;
+    ];
+    const friendsList = yield friendShip_model_1.default.aggregate(friendsListAggregate);
+    const friends = friendsList.map((friend) => friend.user);
+    const totalLengthResult = yield friendShip_model_1.default.aggregate(totalLengthAggregate);
+    const totalLength = totalLengthResult.length > 0 ? totalLengthResult[0].totalLength : 0;
     const response = {
         message: "Success",
         data: {
-            result: friendList,
-            total,
+            result: friends,
+            totalLength,
         },
     };
     res.status(200).json(response);
 }));
-exports.getFriendRequestList = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getFriendReceiveList = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.authUser;
-    const search = req.query.search + "" || "";
     const queryString = {
-        page: req.query.page,
-        pageSize: req.query.pageSize,
+        page: +req.query.page || 1,
+        pageSize: +req.query.pageSize || 5,
         sort: req.query.sort || "-createdAt",
+        search: req.query.search || "",
     };
-    const apiFeature = new apiFeatures_1.default(friendShip_model_1.default.find({
-        $and: [
-            { status: "pending" },
-            { user2: user._id }
-        ]
-    }).populate("user1"), queryString)
-        .paginate()
-        .sort();
-    const friendShips = yield apiFeature.get();
-    const friendRequestList = friendShips.map((friendShip) => {
-        const regex = new RegExp(search, "i");
-        const user1 = friendShip.user1;
-        if (req.query.search) {
-            if ((regex.test(user1.fname) || regex.test(user1.lname) || regex.test(user1.email)))
-                return user1;
+    const sharedAggregate = [
+        {
+            $match: {
+                user2: user._id,
+                status: "pending"
+            }
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "user1",
+                foreignField: "_id",
+                as: "user"
+            }
+        },
+        {
+            $unwind: "$user"
+        },
+        {
+            $project: {
+                "user._id": 1,
+                "user.fname": 1,
+                "user.lname": 1,
+                "user.email": 1,
+                "user.logo": 1,
+            }
+        },
+        {
+            $match: {
+                $or: [
+                    { "user.fname": { $regex: queryString.search, $options: "i" } },
+                    { "user.lname": { $regex: queryString.search, $options: "i" } },
+                    { "user.email": { $regex: queryString.search, $options: "i" } }
+                ]
+            }
+        },
+    ];
+    const friendsListAggregate = [
+        ...sharedAggregate,
+        {
+            $skip: (queryString.page - 1) * queryString.pageSize
+        },
+        {
+            $limit: queryString.pageSize
         }
-        else
-            return user1;
-    });
-    const total = friendRequestList.length;
+    ];
+    const totalLengthAggregate = [
+        ...sharedAggregate,
+        {
+            $count: "totalLength"
+        }
+    ];
+    const friendsList = yield friendShip_model_1.default.aggregate(friendsListAggregate);
+    const friends = friendsList.map((friend) => friend.user);
+    const totalLengthResult = yield friendShip_model_1.default.aggregate(totalLengthAggregate);
+    const totalLength = totalLengthResult.length > 0 ? totalLengthResult[0].totalLength : 0;
     const response = {
         message: "Success",
         data: {
-            result: friendRequestList,
-            total,
+            result: friends,
+            totalLength,
         },
     };
     res.status(200).json(response);
 }));
 exports.getFriendSendList = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.authUser;
-    const search = req.query.search + "" || "";
     const queryString = {
-        page: req.query.page,
-        pageSize: req.query.pageSize,
+        page: +req.query.page || 1,
+        pageSize: +req.query.pageSize || 5,
         sort: req.query.sort || "-createdAt",
+        search: req.query.search || "",
     };
-    const apiFeature = new apiFeatures_1.default(friendShip_model_1.default.find({
-        $and: [
-            { status: "pending" },
-            { user1: user._id }
-        ]
-    }).populate("user2"), queryString)
-        .paginate()
-        .sort();
-    const friendShips = yield apiFeature.get();
-    console.log(friendShips);
-    const friendSendList = friendShips.map((friendShip) => {
-        const regex = new RegExp(search, "i");
-        const user2 = friendShip.user2;
-        if (req.query.search) {
-            if ((regex.test(user2.fname) || regex.test(user2.lname) || regex.test(user2.email)))
-                return user2;
+    const sharedAggregate = [
+        {
+            $match: {
+                user1: user._id,
+                status: "pending"
+            }
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "user2",
+                foreignField: "_id",
+                as: "user"
+            }
+        },
+        {
+            $unwind: "$user"
+        },
+        {
+            $project: {
+                "user._id": 1,
+                "user.fname": 1,
+                "user.lname": 1,
+                "user.email": 1,
+                "user.logo": 1,
+            }
+        },
+        {
+            $match: {
+                $or: [
+                    { "user.fname": { $regex: queryString.search, $options: "i" } },
+                    { "user.lname": { $regex: queryString.search, $options: "i" } },
+                    { "user.email": { $regex: queryString.search, $options: "i" } }
+                ]
+            }
+        },
+    ];
+    const friendsListAggregate = [
+        ...sharedAggregate,
+        {
+            $skip: (queryString.page - 1) * queryString.pageSize
+        },
+        {
+            $limit: queryString.pageSize
         }
-        else
-            return user2;
-    });
-    const total = friendSendList.length;
+    ];
+    const totalLengthAggregate = [
+        ...sharedAggregate,
+        {
+            $count: "totalLength"
+        }
+    ];
+    const friendsList = yield friendShip_model_1.default.aggregate(friendsListAggregate);
+    const friends = friendsList.map((friend) => friend.user);
+    const totalLengthResult = yield friendShip_model_1.default.aggregate(totalLengthAggregate);
+    const totalLength = totalLengthResult.length > 0 ? totalLengthResult[0].totalLength : 0;
     const response = {
         message: "Success",
         data: {
-            result: friendSendList,
-            total,
+            result: friends,
+            totalLength,
         },
     };
     res.status(200).json(response);
@@ -163,6 +275,10 @@ exports.sendFriendRequest = (0, catchErrors_1.default)((req, res, next) => __awa
         user2: friend._id,
     };
     yield friendShip_model_1.default.create(friendShipData);
+    socket_1.default.getIO().in(friend.socketId).emit("friendShip", {
+        action: "friendRequest",
+        data: user
+    });
     const response = {
         message: "Success",
     };
@@ -172,6 +288,8 @@ exports.acceptFriendRequest = (0, catchErrors_1.default)((req, res, next) => __a
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty())
         return next((0, errorMessage_1.default)(422, "Invalid Data", errors.array()));
+    const user = req.authUser;
+    const friend = req.user;
     const friendShip = req.friendShip;
     friendShip.status = "accepted";
     yield friendShip.save();
@@ -179,6 +297,22 @@ exports.acceptFriendRequest = (0, catchErrors_1.default)((req, res, next) => __a
         friendShip: friendShip._id
     };
     const chat = yield chat_model_1.default.create(chatData);
+    const chatUser1 = {
+        chat: chat._id,
+        user: friendShip.user1,
+        userRole: "user",
+    };
+    const chatUser2 = {
+        chat: chat._id,
+        user: friendShip.user2,
+        userRole: "user",
+    };
+    yield chatUser_model_1.default.create(chatUser1);
+    yield chatUser_model_1.default.create(chatUser2);
+    socket_1.default.getIO().in(friend.socketId).emit("friendShip", {
+        action: "acceptRequest",
+        data: user
+    });
     const response = {
         message: "Success",
     };
@@ -189,7 +323,13 @@ exports.deleteOrRejectFriend = (0, catchErrors_1.default)((req, res, next) => __
     if (!errors.isEmpty())
         return next((0, errorMessage_1.default)(422, "Invalid Data", errors.array()));
     const friendShip = req.friendShip;
-    yield friendShip.deleteOne();
+    const user = req.authUser;
+    const friend = req.user;
+    yield friendShip_model_1.default.findOneAndDelete({ _id: friendShip._id });
+    socket_1.default.getIO().in(friend.socketId).emit("friendShip", {
+        action: "deleteRequest",
+        data: user
+    });
     const response = {
         message: "Success",
     };

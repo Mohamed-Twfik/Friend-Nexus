@@ -10,16 +10,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 class ApiFeature {
-    constructor(mongooseQuery, queryString) {
+    constructor(mongooseQuery, queryString, queryCondition = {}) {
         this.pageSize = 5;
         this.page = 1;
         this.mongooseQuery = mongooseQuery;
         this.queryString = queryString;
+        this.queryCondition = queryCondition;
     }
     //[1]to make pagination
     paginate() {
-        this.page = (!this.queryString.page || this.queryString.page <= 0) ? this.page : +this.queryString.page;
-        this.pageSize = (!this.queryString.pageSize || this.queryString.pageSize <= 0) ? this.pageSize : +this.queryString.pageSize;
+        this.page = (!this.queryString.page || this.queryString.page <= 0) ? this.page : this.queryString.page;
+        this.pageSize = (!this.queryString.pageSize || this.queryString.pageSize <= 0) ? this.pageSize : this.queryString.pageSize;
         let skip = (this.page - 1) * this.pageSize;
         this.mongooseQuery.skip(skip).limit(this.pageSize);
         return this;
@@ -35,6 +36,7 @@ class ApiFeature {
         filterObjToStr = filterObjToStr.replace(/\b(gt|gte|lt|lte)\b/g, (match) => `$${match}`);
         filterObjToStr = JSON.parse(filterObjToStr);
         this.mongooseQuery.find(filterObj);
+        this.queryCondition = Object.assign(Object.assign({}, this.queryCondition), filterObj);
         return this;
     }
     //[3] to make sort
@@ -49,6 +51,7 @@ class ApiFeature {
     search(conditions) {
         if (this.queryString.search) {
             this.mongooseQuery.find(conditions);
+            this.queryCondition = Object.assign(Object.assign({}, this.queryCondition), conditions);
         }
         return this;
     }
@@ -64,6 +67,12 @@ class ApiFeature {
     get() {
         return __awaiter(this, void 0, void 0, function* () {
             return yield this.mongooseQuery;
+        });
+    }
+    //[7] to get the total length
+    getTotal() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.mongooseQuery.model.countDocuments(this.queryCondition);
         });
     }
 }

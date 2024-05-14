@@ -12,30 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const mongoose_1 = __importDefault(require("mongoose"));
-const chat_model_1 = __importDefault(require("./chat.model"));
-const friendShipSchema = new mongoose_1.default.Schema({
-    status: {
-        type: String,
-        enum: ["pending", "accepted"],
-        default: "pending"
-    },
-    user1: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
-        index: true
-    },
-    user2: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
-        index: true
-    },
-}, { timestamps: true });
-friendShipSchema.post("findOneAndDelete", function (doc) {
-    return __awaiter(this, void 0, void 0, function* () {
-        yield chat_model_1.default.deleteMany({ friendShip: doc._id });
-    });
-});
-exports.default = mongoose_1.default.model("FriendShip", friendShipSchema);
+exports.checkTokenOwner = void 0;
+const catchErrors_1 = __importDefault(require("../../utils/catchErrors"));
+const errorMessage_1 = __importDefault(require("../../utils/errorMessage"));
+exports.checkTokenOwner = (0, catchErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = req.authUser;
+    const token = req.token;
+    if (token.user.toString() !== user._id.toString())
+        return next((0, errorMessage_1.default)(403, "Access Denied"));
+    next();
+}));

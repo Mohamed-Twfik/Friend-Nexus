@@ -22,7 +22,10 @@ exports.getUserTokens = (0, catchErrors_1.default)((req, res, next) => __awaiter
     const tokens = yield token_model_1.default.find({ user: user._id });
     const response = {
         message: "Success",
-        data: tokens
+        data: {
+            result: tokens,
+            totalLength: tokens.length
+        }
     };
     res.status(200).json(response);
 }));

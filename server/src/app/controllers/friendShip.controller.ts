@@ -10,6 +10,7 @@ import { IChatPrivate, IChatUser } from "../types/chat.type";
 import chatModel from "../models/chat.model";
 import chatUserModel from "../models/chatUser.model";
 import { IQueryString } from "../types/apiFeature.type";
+import io from "../../socket";
 
 export const getFriendList = catchErrors(async (req: CustomRequest, res: Response, next: NextFunction) => {
   const user = req.authUser;
@@ -287,6 +288,11 @@ export const sendFriendRequest = catchErrors(async (req: CustomRequest, res: Res
     user2: friend._id,
   }
   await friendShipModel.create(friendShipData);
+
+  io.getIO().in(friend.socketId).emit("friendShip", {
+    action: "friendRequest",
+    data: user
+  });
   
   const response: OKResponse = {
     message: "Success",
@@ -299,6 +305,8 @@ export const acceptFriendRequest = catchErrors(async (req: CustomRequest, res: R
   const errors = validationResult(req);
   if (!errors.isEmpty()) return next(errorMessage(422, "Invalid Data", errors.array()));
   
+  const user = req.authUser;
+  const friend = req.user;
   const friendShip = req.friendShip;
   friendShip.status = "accepted";
   await friendShip.save();
@@ -319,6 +327,11 @@ export const acceptFriendRequest = catchErrors(async (req: CustomRequest, res: R
   await chatUserModel.create(chatUser1);
   await chatUserModel.create(chatUser2);
 
+  io.getIO().in(friend.socketId).emit("friendShip", {
+    action: "acceptRequest",
+    data: user
+  });
+
   const response: OKResponse = {
     message: "Success",
   };
@@ -331,7 +344,14 @@ export const deleteOrRejectFriend = catchErrors(async (req: CustomRequest, res: 
   if (!errors.isEmpty()) return next(errorMessage(422, "Invalid Data", errors.array()));
   
   const friendShip = req.friendShip;
+  const user = req.authUser;
+  const friend = req.user;
   await friendShipModel.findOneAndDelete({ _id: friendShip._id });
+
+  io.getIO().in(friend.socketId).emit("friendShip", {
+    action: "deleteRequest",
+    data: user
+  });
 
   const response: OKResponse = {
     message: "Success",

@@ -10,6 +10,7 @@ import { IUserSchema } from "../types/user.type";
 import fs from "fs";
 import path from "path";
 import { IQueryString } from "../types/apiFeature.type";
+import io from "../../socket";
 
 export const getUserChats = catchErrors(async (req, res, next) => {
   const user = req.authUser;
@@ -246,6 +247,12 @@ export const updateChat = catchErrors(async (req, res, next) => {
 
   await chat.save();
 
+  const data = {
+    action: "update",
+    data: chat
+  };
+  await sendEventToChatUsers(chat, data);
+
   const response: OKResponse = {
     message: "Success",
     data: chat,
@@ -262,8 +269,16 @@ export const deleteChat = catchErrors(async (req, res, next) => {
       if(err) console.log(err);
     });
   }
-
+  const chatUsers = await chatUserModel.find({ chat: chat._id }).populate("user");
   await chatModel.findOneAndDelete({ _id: chat._id });
+
+  chatUsers.forEach(chatUser => {
+    const user = chatUser.user;
+    io.getIO().in((user as IUserSchema).socketId as string).emit("chat", {
+      action: "delete",
+      data: chat
+    });
+  });
 
   const response: OKResponse = {
     message: "Success",
@@ -362,6 +377,12 @@ export const addChatUser = catchErrors(async (req, res, next) => {
   };
   const newChatUser = await chatUserModel.create(chatUserData);
 
+  const data = {
+    action: "addUser",
+    data: user
+  };
+  await sendEventToChatUsers(chat, data);
+
   const response: OKResponse = {
     message: "Success",
   };
@@ -375,6 +396,18 @@ export const updateChatUserRole = catchErrors(async (req, res, next) => {
   else chatUser.userRole = "moderator";
   await chatUser.save();
 
+  const user = await userModel.findById(chatUser.user);
+  const chat = req.chat;
+  const data = {
+    action: "userRole",
+    data: {
+      user,
+      role: chatUser.userRole
+    }
+  };
+  io.getIO().in((user as IUserSchema).socketId as string).emit("chat", data);
+  await sendEventToChatUsers(chat, data);
+
   const response: OKResponse = {
     message: "Success",
   };
@@ -385,6 +418,14 @@ export const removeChatUser = catchErrors(async (req, res, next) => {
   const chatUser = req.chatUser;
   if (chatUser.userRole === "admin") return next(errorMessage(403, "Access Denied"));
   await chatUser.deleteOne();
+
+  const user = await userModel.findById(chatUser.user);
+  const chat = req.chat;
+  const data = {
+    action: "removeUser",
+    data: user
+  };
+  await sendEventToChatUsers(chat, data);
 
   const response: OKResponse = {
     message: "Success",
@@ -407,8 +448,23 @@ export const leaveChat = catchErrors(async (req, res, next) => {
   };
   await chatUser.deleteOne();
 
+  const user = await userModel.findById(chatUser.user);
+  const data = {
+    action: "leaveChat",
+    data: user
+  };
+  await sendEventToChatUsers(chat, data);
+
   const response: OKResponse = {
     message: "Success",
   };
   res.status(200).json(response);
 });
+
+const sendEventToChatUsers = async (chat: IChatSchema, data: any) => {
+  const chatUsers = await chatUserModel.find({ chat: chat._id }).populate("user");
+  chatUsers.forEach(chatUser => {
+    const user = chatUser.user;
+    io.getIO().in((user as IUserSchema).socketId as string).emit("chat", data);
+  });
+};

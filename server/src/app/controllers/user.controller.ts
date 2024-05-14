@@ -9,6 +9,7 @@ import catchErrors from "../utils/catchErrors";
 import errorMessage from "../utils/errorMessage";
 import generateRandomCode from "../utils/generateRandomCode";
 import sendMails from "../utils/sendMails";
+import io from "../../socket";
 
 export const getAllUsers = catchErrors(async (req, res, next) => {
   const queryString: IQueryString = {
@@ -107,6 +108,11 @@ export const updateRole = catchErrors(async (req, res, next) => {
   else user.role = "user";
   await user.save();
   user.password = undefined;
+
+  io.getIO().in(user.socketId).emit("user", {
+    action: "updateRole",
+    data: user.role
+  });
 
   const response: OKResponse = {
     message: "Success",

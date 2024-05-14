@@ -4,14 +4,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const chat_validator_1 = require("../middlewares/chat.validator");
-const chat_permission_1 = require("../middlewares/chat.permission");
 const chat_controller_1 = require("../controllers/chat.controller");
+const chat_permission_1 = require("../middlewares/auth/chat.permission");
+const chat_validator_1 = require("../middlewares/validators/chat.validator");
+const fileUpload_1 = __importDefault(require("../middlewares/fileUpload"));
 const router = express_1.default.Router();
 router.get("/list", chat_controller_1.getUserChats);
 router.get("/:chatId", (0, chat_validator_1.chatIdValidator)(), (0, chat_permission_1.checkChatMember)("authUser"), chat_controller_1.getOneChat);
-router.post("/new", (0, chat_validator_1.createChatValidator)(), chat_controller_1.createChat);
-router.patch("/:chatId", (0, chat_validator_1.updateChatValidator)(), chat_permission_1.checkChatModerator, chat_controller_1.updateChat);
+router.post("/new", (0, fileUpload_1.default)("image", "single", "logo"), (0, chat_validator_1.createChatValidator)(), chat_controller_1.createChat);
+router.patch("/:chatId", (0, fileUpload_1.default)("image", "single", "logo"), (0, chat_validator_1.updateChatValidator)(), chat_permission_1.checkChatModerator, chat_controller_1.updateChat);
 router.delete("/:chatId", (0, chat_validator_1.chatIdValidator)(), chat_permission_1.checkChatModerator, chat_controller_1.deleteChat);
 router.get("/users/list/:chatId", (0, chat_validator_1.chatIdValidator)(), (0, chat_permission_1.checkChatMember)("authUser"), chat_controller_1.getChatUsers);
 router.post("/users/add/:userId/:chatId", (0, chat_validator_1.userIdAndChatIdValidator)(), chat_permission_1.checkChatModerator, chat_controller_1.addChatUser);
@@ -19,5 +20,4 @@ router.post("/users/join/:chatId", (0, chat_validator_1.chatIdValidator)(), chat
 router.patch("/users/role/:userId/:chatId", (0, chat_validator_1.userIdAndChatIdValidator)(), chat_permission_1.checkChatAdmin, (0, chat_permission_1.checkChatMember)("user"), chat_controller_1.updateChatUserRole);
 router.delete("/users/remove/:userId/:chatId", (0, chat_validator_1.userIdAndChatIdValidator)(), chat_permission_1.checkChatModerator, (0, chat_permission_1.checkChatMember)("user"), chat_controller_1.removeChatUser);
 router.delete("/users/leave/:chatId", (0, chat_validator_1.chatIdValidator)(), (0, chat_permission_1.checkChatMember)("authUser"), chat_controller_1.leaveChat);
-// router.get("/messages/list/:chatId", chatIdValidator(), checkChatMember("authUser"), );
 exports.default = router;

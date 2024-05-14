@@ -22,7 +22,7 @@ router.get("/me/list", getUserStatusList("owner"));
 router.get("/friend/list/:userId", userIdValidator(), getUserStatusList("friend"));
 router.get("/:statusId", statusIdValidator(), getOneStatusPermission, getOneStatus);
 
-router.post("/", uploadMW("media", "single", "file"), createStatusValidator(), createStatus);
+router.post("/new", uploadMW("media", "single", "file"), createStatusValidator(), createStatus);
 
 router.delete("/:statusId", statusIdValidator(), deleteStatusPermission, deleteStatus);
 
