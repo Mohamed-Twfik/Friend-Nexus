@@ -1,3 +1,5 @@
 .env
 node_modules
 test.txt
+server.cert
+server.key
