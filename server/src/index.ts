@@ -9,13 +9,14 @@ import router from "./app/router";
 import morgan from "morgan";
 import compression from "compression";
 import fs from "fs";
+import swaggerDocs from "./app/utils/swagger";
 
 dotenv.config();
 const app = express();
 
 dbConnection(app).then(() => {
   // CORS configuration
-  const whitelist = ['http://localhost:5157',"http://localhost:4173"];
+  const whitelist = ['http://localhost:5157', "http://localhost:4000"];
   const corsOptions: CorsOptions = {
     origin: (origin, callback) => {
       // Check if the requested origin is in the whitelist or is undefined (same origin).
@@ -47,6 +48,9 @@ dbConnection(app).then(() => {
     res.setHeader('Content-Security-Policy', "default-src 'self'");
     next();
   });
+
+  swaggerDocs(app);
+
   router(app);
 }).catch(err => {
   console.error("Database Connection Error: " + err);
