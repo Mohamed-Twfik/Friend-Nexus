@@ -1,5 +1,9 @@
 .env
+dist
 node_modules
+tests
 test.txt
 server.cert
 server.key
+uploads
+.vscode
