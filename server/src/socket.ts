@@ -7,7 +7,7 @@ import tokenModel from "./app/models/token.model";
 let io: Server;
 export default {
   init: (httpServer: http.Server) => {
-    const io = new Server(httpServer, { /* options */ });
+    io = new Server(httpServer, { /* options */ });
     io.on("connection", async(socket) => {
       console.log("user connected");
       console.log(socket);
